@@ -1,0 +1,16 @@
+{
+  "name": "Zigaba Market",
+  "short_name": "Zigaba",
+  "description": "Soko la mtandaoni la Tanzania",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f97316",
+  "theme_color": "#f97316",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
