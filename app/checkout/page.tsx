@@ -1,202 +1,192 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = "https://tzrpmrwkglgjvsejgmab.supabase.co";
 const supabaseAnonKey = "sb_publishable_0Qtlmnmvh8gRWgosymiPxw_QJQds012";
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export default function CheckoutPage() {
+export default function Home() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [location, setLocation] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("cod");
-  const [product, setProduct] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState("All");
+  const [search, setSearch] = useState("");
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const id = searchParams.get("id");
-    const name = searchParams.get("name");
-    const price = searchParams.get("price");
-
-    if (id && name && price) {
-      setProduct({ id, name, price });
-    }
-  }, [searchParams]);
-
-  async function handleOrder(e: any) {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
-
-    const { error } = await supabase.from("orders").insert([
-      {
-        product_id: Number(product.id),
-        product_name: product.name,
-        price: Number(product.price),
-        customer_name: name,
-        customer_phone: phone,
-        location: location,
-        payment_method: paymentMethod,
-        status: "pending",
-      },
-    ]);
-
-    if (error) {
-      setMessage("Hitilafu: " + error.message);
-    } else {
-      let paymentText = "";
-      if (paymentMethod === "cod") paymentText = "Lipa baada ya kupokea";
-      else if (paymentMethod === "mpesa") paymentText = "M-Pesa";
-      else if (paymentMethod === "tigopesa") paymentText = "Tigo Pesa";
-      else if (paymentMethod === "airtel") paymentText = "Airtel Money";
-
-      setMessage(
-        `Asante ${name}!\n\nOda yako imepokelewa na kuhifadhiwa.\n\nBidhaa: ${product.name}\nBei: TSh ${Number(product.price).toLocaleString()}\nNjia ya Malipo: ${paymentText}\n\nUtapigiwa simu kwa namba ${phone}.`
-      );
+    async function fetchProducts() {
+      const { data } = await supabase
+        .from("products")
+        .select("*")
+        .order("id", { ascending: false });
+      if (data) setProducts(data);
+      setLoading(false);
     }
 
-    setLoading(false);
+    async function getUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    }
+
+    fetchProducts();
+    getUser();
+  }, []);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setUser(null);
+    router.push("/");
   }
 
-  if (!product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Hakuna bidhaa iliyochaguliwa</p>
-      </div>
-    );
-  }
+  const filtered = products.filter((p) => {
+    const matchCategory = category === "All" || p.category === category;
+    const matchSearch =
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.description &&
+        p.description.toLowerCase().includes(search.toLowerCase()));
+    return matchCategory && matchSearch;
+  });
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-orange-500 text-white p-4">
+      <header className="bg-orange-500 text-white p-4 shadow-md">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Zigaba Market - Checkout</h1>
-          <button
-            onClick={() => router.push("/")}
-            className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
-          >
-            ← Rudi
-          </button>
+          <h1 className="text-2xl font-bold">Zigaba Market</h1>
+          <div className="flex gap-4 items-center">
+            {user ? (
+              <>
+                <span className="text-sm">
+                  Habari, {user.user_metadata?.full_name || user.email}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => router.push("/login")}
+                  className="hover:underline"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => router.push("/register")}
+                  className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+                >
+                  Register
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => router.push("/seller")}
+              className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+            >
+              Seller
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="max-w-md mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold mb-4">Thibitisha Oda</h2>
+      <div className="bg-white p-4 shadow">
+        <div className="max-w-6xl mx-auto">
+          <input
+            type="text"
+            placeholder="Tafuta bidhaa..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-orange-500"
+          />
+        </div>
+      </div>
 
-          <div className="mb-6 p-4 bg-gray-50 rounded">
-            <p className="font-semibold">{product.name}</p>
-            <p className="text-orange-500 font-bold text-lg">
-              TSh {Number(product.price).toLocaleString()}
-            </p>
-          </div>
-
-          <form onSubmit={handleOrder} className="space-y-4">
-            <div>
-              <label className="block font-semibold mb-1">Jina lako</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold mb-1">Namba ya Simu</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2"
-                placeholder="07XXXXXXXX"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold mb-1">Mahali pa kupokelea</label>
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2"
-                placeholder="Mfano: Ukonga, Dar es Salaam"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold mb-2">Chagua Njia ya Malipo</label>
-              <div className="space-y-2">
-                <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="cod"
-                    checked={paymentMethod === "cod"}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  />
-                  <span>Lipa baada ya kupokea</span>
-                </label>
-
-                <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="mpesa"
-                    checked={paymentMethod === "mpesa"}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  />
-                  <span>M-Pesa</span>
-                </label>
-
-                <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="tigopesa"
-                    checked={paymentMethod === "tigopesa"}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  />
-                  <span>Tigo Pesa</span>
-                </label>
-
-                <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="airtel"
-                    checked={paymentMethod === "airtel"}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  />
-                  <span>Airtel Money</span>
-                </label>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600"
-            >
-              {loading ? "Inashughulikiwa..." : "Thibitisha Oda"}
-            </button>
-          </form>
-
-          {message && (
-            <div className="mt-6 p-4 bg-green-50 text-green-800 rounded-lg whitespace-pre-line text-sm">
-              {message}
-            </div>
+      <div className="max-w-6xl mx-auto p-4">
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {["All", "Electronics", "Fashion", "Home & Kitchen", "Groceries"].map(
+            (cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategory(cat)}
+                className={`px-4 py-2 rounded-full whitespace-nowrap ${
+                  category === cat
+                    ? "bg-orange-500 text-white"
+                    : "bg-white text-gray-700"
+                }`}
+              >
+                {cat}
+              </button>
+            )
           )}
         </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto p-4">
+        <h2 className="text-xl font-bold mb-4">Bidhaa</h2>
+
+        {loading ? (
+          <p>Inapakia...</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-center text-gray-500">Hakuna bidhaa zilizopatikana</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {filtered.map((product) => {
+              const firstImage = product.image_url
+                ? product.image_url.split(",")[0]
+                : null;
+
+              return (
+                <div
+                  key={product.id}
+                  onClick={() => router.push("/product/" + product.id)}
+                  className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg cursor-pointer"
+                >
+                  {firstImage ? (
+                    <img
+                      src={firstImage}
+                      alt={product.name}
+                      className="h-40 w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-40 bg-gray-200 flex items-center justify-center text-4xl">
+                      📦
+                    </div>
+                  )}
+                  <div className="p-3">
+                    <p className="text-xs text-gray-500">{product.category}</p>
+                    <h3 className="font-semibold truncate">{product.name}</h3>
+                    <p className="text-orange-500 font-bold mt-1">
+                      TSh {Number(product.price).toLocaleString()}
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(
+                          "/checkout?id=" +
+                            product.id +
+                            "&name=" +
+                            encodeURIComponent(product.name) +
+                            "&price=" +
+                            product.price
+                        );
+                      }}
+                      className="mt-2 w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
+                    >
+                      Nunua Sasa
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
