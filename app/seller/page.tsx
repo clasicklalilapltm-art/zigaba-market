@@ -29,7 +29,7 @@ export default function SellerPage() {
     let imageUrl = "";
 
     if (file) {
-      const fileName = `\( {Date.now()}- \){file.name}`;
+      const fileName = Date.now() + "-" + file.name;
       const { error: uploadError } = await supabase.storage
         .from("products")
         .upload(fileName, file);
