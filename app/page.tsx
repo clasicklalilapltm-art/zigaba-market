@@ -149,7 +149,7 @@ export default function Home() {
               return (
                 <div
                   key={product.id}
-                  onClick={() => router.push(`/product/${product.id}`)}
+                  onClick={() => router.push("/product/" + product.id)}
                   className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg cursor-pointer"
                 >
                   {firstImage ? (
@@ -173,9 +173,12 @@ export default function Home() {
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(
-                          `/checkout?id=\( {product.id}&name= \){encodeURIComponent(
-                            product.name
-                          )}&price=${product.price}`
+                          "/checkout?id=" +
+                            product.id +
+                            "&name=" +
+                            encodeURIComponent(product.name) +
+                            "&price=" +
+                            product.price
                         );
                       }}
                       className="mt-2 w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
