@@ -54,7 +54,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
       <header className="bg-orange-500 text-white p-4 shadow-md">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">Zigaba Market</h1>
@@ -97,7 +96,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Search */}
       <div className="bg-white p-4 shadow">
         <div className="max-w-6xl mx-auto">
           <input
@@ -110,7 +108,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Categories */}
       <div className="max-w-6xl mx-auto p-4">
         <div className="flex gap-3 overflow-x-auto pb-2">
           {["All", "Electronics", "Fashion", "Home & Kitchen", "Groceries"].map(
@@ -131,7 +128,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Products */}
       <div className="max-w-6xl mx-auto p-4">
         <h2 className="text-xl font-bold mb-4">Bidhaa</h2>
 
