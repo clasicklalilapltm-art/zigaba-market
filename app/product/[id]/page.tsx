@@ -1,167 +1,192 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = "https://tzrpmrwkglgjvsejgmab.supabase.co";
 const supabaseAnonKey = "sb_publishable_0Qtlmnmvh8gRWgosymiPxw_QJQds012";
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export default function ProductDetail() {
-  const params = useParams();
+export default function Home() {
   const router = useRouter();
-  const [product, setProduct] = useState<any>(null);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentImage, setCurrentImage] = useState(0);
+  const [category, setCategory] = useState("All");
+  const [search, setSearch] = useState("");
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    async function fetchProduct() {
-      const { data, error } = await supabase
+    async function fetchProducts() {
+      const { data } = await supabase
         .from("products")
         .select("*")
-        .eq("id", Number(params.id))
-        .single();
-
-      if (error || !data) {
-        setProduct(null);
-      } else {
-        setProduct(data);
-      }
+        .order("id", { ascending: false });
+      if (data) setProducts(data);
       setLoading(false);
     }
 
-    if (params.id) {
-      fetchProduct();
+    async function getUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
     }
-  }, [params.id]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Inapakia...</p>
-      </div>
-    );
+    fetchProducts();
+    getUser();
+  }, []);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setUser(null);
+    router.push("/");
   }
 
-  if (!product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Bidhaa haipatikani</p>
-      </div>
-    );
-  }
-
-  const images = product.image_url
-    ? product.image_url.split(",").filter((url: string) => url.trim() !== "")
-    : [];
-
-  const whatsappNumber = product.seller_phone
-    ? product.seller_phone.replace(/^0/, "255")
-    : "";
-
-  const whatsappLink = `https://wa.me/${whatsappNumber}?text=Habari, nimevutiwa na bidhaa yako: ${product.name} - TSh ${Number(product.price).toLocaleString()}`;
+  const filtered = products.filter((p) => {
+    const matchCategory = category === "All" || p.category === category;
+    const matchSearch =
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.description &&
+        p.description.toLowerCase().includes(search.toLowerCase()));
+    return matchCategory && matchSearch;
+  });
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-orange-500 text-white p-4">
+      <header className="bg-orange-500 text-white p-4 shadow-md">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">Zigaba Market</h1>
-          <button
-            onClick={() => router.push("/")}
-            className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
-          >
-            ← Rudi Nyumbani
-          </button>
+          <div className="flex gap-4 items-center">
+            {user ? (
+              <>
+                <span className="text-sm">
+                  Habari, {user.user_metadata?.full_name || user.email}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => router.push("/login")}
+                  className="hover:underline"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => router.push("/register")}
+                  className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+                >
+                  Register
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => router.push("/seller")}
+              className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+            >
+              Seller
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          {/* Image Gallery */}
-          <div className="h-80 bg-gray-200 flex items-center justify-center relative">
-            {images.length > 0 ? (
-              <img
-                src={images[currentImage]}
-                alt={product.name}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span className="text-8xl">📦</span>
-            )}
-          </div>
-
-          {/* Thumbnails */}
-          {images.length > 1 && (
-            <div className="flex gap-2 p-4 overflow-x-auto">
-              {images.map((url: string, index: number) => (
-                <img
-                  key={index}
-                  src={url}
-                  alt={`Picha ${index + 1}`}
-                  onClick={() => setCurrentImage(index)}
-                  className={`h-16 w-16 object-cover rounded cursor-pointer border-2 ${
-                    currentImage === index
-                      ? "border-orange-500"
-                      : "border-transparent"
-                  }`}
-                />
-              ))}
-            </div>
-          )}
-
-          <div className="p-6">
-            <p className="text-sm text-gray-500 mb-1">{product.category}</p>
-            <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-            <p className="text-2xl text-orange-500 font-bold mb-4">
-              TSh {Number(product.price).toLocaleString()}
-            </p>
-            <p className="text-gray-700 mb-6">{product.description}</p>
-
-            <div className="border-t pt-4 mb-6">
-              <h3 className="font-bold text-lg mb-2">Maelezo ya Muuzaji</h3>
-              <p>
-                <span className="font-semibold">Simu:</span>{" "}
-                {product.seller_phone || "Haipo"}
-              </p>
-              <p>
-                <span className="font-semibold">Eneo:</span>{" "}
-                {product.location || "Haipo"}
-              </p>
-              <p>
-                <span className="font-semibold">Mkoa:</span>{" "}
-                {product.region || "Haipo"}
-              </p>
-            </div>
-
-            {/* Buttons */}
-            <div className="space-y-3">
-              <button
-                onClick={() =>
-                  router.push(
-                    `/checkout?id=\( {product.id}&name= \){encodeURIComponent(
-                      product.name
-                    )}&price=${product.price}`
-                  )
-                }
-                className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600"
-              >
-                Nunua Sasa
-              </button>
-
-              {product.seller_phone && (
-                <a
-                  href={whatsappLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full bg-green-500 text-white py-3 rounded-lg font-semibold text-center hover:bg-green-600"
-                >
-                  Chat na Muuzaji (WhatsApp)
-                </a>
-              )}
-            </div>
-          </div>
+      <div className="bg-white p-4 shadow">
+        <div className="max-w-6xl mx-auto">
+          <input
+            type="text"
+            placeholder="Tafuta bidhaa..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-orange-500"
+          />
         </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto p-4">
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {["All", "Electronics", "Fashion", "Home & Kitchen", "Groceries"].map(
+            (cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategory(cat)}
+                className={`px-4 py-2 rounded-full whitespace-nowrap ${
+                  category === cat
+                    ? "bg-orange-500 text-white"
+                    : "bg-white text-gray-700"
+                }`}
+              >
+                {cat}
+              </button>
+            )
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto p-4">
+        <h2 className="text-xl font-bold mb-4">Bidhaa</h2>
+
+        {loading ? (
+          <p>Inapakia...</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-center text-gray-500">Hakuna bidhaa zilizopatikana</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {filtered.map((product) => {
+              const firstImage = product.image_url
+                ? product.image_url.split(",")[0]
+                : null;
+
+              return (
+                <div
+                  key={product.id}
+                  onClick={() => router.push("/product/" + product.id)}
+                  className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg cursor-pointer"
+                >
+                  {firstImage ? (
+                    <img
+                      src={firstImage}
+                      alt={product.name}
+                      className="h-40 w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-40 bg-gray-200 flex items-center justify-center text-4xl">
+                      📦
+                    </div>
+                  )}
+                  <div className="p-3">
+                    <p className="text-xs text-gray-500">{product.category}</p>
+                    <h3 className="font-semibold truncate">{product.name}</h3>
+                    <p className="text-orange-500 font-bold mt-1">
+                      TSh {Number(product.price).toLocaleString()}
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(
+                          "/checkout?id=" +
+                            product.id +
+                            "&name=" +
+                            encodeURIComponent(product.name) +
+                            "&price=" +
+                            product.price
+                        );
+                      }}
+                      className="mt-2 w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
+                    >
+                      Nunua Sasa
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
