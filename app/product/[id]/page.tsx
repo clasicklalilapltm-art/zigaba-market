@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase",
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = "https://tzrpmrwkglgjvsejgmab.supabase.co";
+const supabaseAnonKey = "sb_publishable_0Qtlmnmvh8gRWgosymiPxw_QJQds012";
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function ProductDetail() {
   const params = useParams();
