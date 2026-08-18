@@ -18,6 +18,10 @@ export default function ProductDetail() {
         .eq("id", Number(params.id))
         .single();
 
+      console.log("Looking for ID:", params.id);
+      console.log("Data:", data);
+      console.log("Error:", error);
+
       if (error || !data) {
         setProduct(null);
       } else {
