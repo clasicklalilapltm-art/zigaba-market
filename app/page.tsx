@@ -13,6 +13,7 @@ export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("All");
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -23,8 +24,21 @@ export default function Home() {
       if (data) setProducts(data);
       setLoading(false);
     }
+
+    async function getUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    }
+
     fetchProducts();
+    getUser();
   }, []);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setUser(null);
+    router.push("/");
+  }
 
   const filtered =
     category === "All"
@@ -37,19 +51,35 @@ export default function Home() {
       <header className="bg-orange-500 text-white p-4 shadow-md">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">Zigaba Market</h1>
-          <div className="flex gap-4">
-            <button
-              onClick={() => router.push("/login")}
-              className="hover:underline"
-            >
-              Login
-            </button>
-            <button
-              onClick={() => router.push("/register")}
-              className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
-            >
-              Register
-            </button>
+          <div className="flex gap-4 items-center">
+            {user ? (
+              <>
+                <span className="text-sm">
+                  Habari, {user.user_metadata?.full_name || user.email}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => router.push("/login")}
+                  className="hover:underline"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => router.push("/register")}
+                  className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+                >
+                  Register
+                </button>
+              </>
+            )}
             <button
               onClick={() => router.push("/seller")}
               className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
