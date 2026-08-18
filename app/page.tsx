@@ -16,16 +16,20 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchProducts() {
-      const { data } = await supabase.from("products").select("*").order("id", { ascending: false });
+      const { data } = await supabase
+        .from("products")
+        .select("*")
+        .order("id", { ascending: false });
       if (data) setProducts(data);
       setLoading(false);
     }
     fetchProducts();
   }, []);
 
-  const filtered = category === "All"
-    ? products
-    : products.filter((p) => p.category === category);
+  const filtered =
+    category === "All"
+      ? products
+      : products.filter((p) => p.category === category);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -34,7 +38,10 @@ export default function Home() {
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">Zigaba Market</h1>
           <div className="flex gap-4">
-            <button onClick={() => router.push("/login")} className="hover:underline">
+            <button
+              onClick={() => router.push("/login")}
+              className="hover:underline"
+            >
               Login
             </button>
             <button
@@ -67,19 +74,21 @@ export default function Home() {
       {/* Categories */}
       <div className="max-w-6xl mx-auto p-4">
         <div className="flex gap-3 overflow-x-auto pb-2">
-          {["All", "Electronics", "Fashion", "Home & Kitchen", "Groceries"].map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategory(cat)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap ${
-                category === cat
-                  ? "bg-orange-500 text-white"
-                  : "bg-white text-gray-700"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+          {["All", "Electronics", "Fashion", "Home & Kitchen", "Groceries"].map(
+            (cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategory(cat)}
+                className={`px-4 py-2 rounded-full whitespace-nowrap ${
+                  category === cat
+                    ? "bg-orange-500 text-white"
+                    : "bg-white text-gray-700"
+                }`}
+              >
+                {cat}
+              </button>
+            )
+          )}
         </div>
       </div>
 
@@ -119,8 +128,18 @@ export default function Home() {
                     <p className="text-orange-500 font-bold mt-1">
                       TSh {Number(product.price).toLocaleString()}
                     </p>
-                    <button className="mt-2 w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600">
-                      Ongeza kwenye Cart
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(
+                          `/checkout?id=\( {product.id}&name= \){encodeURIComponent(
+                            product.name
+                          )}&price=${product.price}`
+                        );
+                      }}
+                      className="mt-2 w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
+                    >
+                      Nunua Sasa
                     </button>
                   </div>
                 </div>
