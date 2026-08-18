@@ -1,125 +1,193 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
-export default function CheckoutPage() {
+const supabaseUrl = "https://tzrpmrwkglgjvsejgmab.supabase.co";
+const supabaseAnonKey = "sb_publishable_0Qtlmnmvh8gRWgosymiPxw_QJQds012";
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export default function Home() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("M-Pesa");
-  const [message, setMessage] = useState("");
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState("All");
+  const [search, setSearch] = useState("");
+  const [user, setUser] = useState<any>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!name || !phone || !address) {
-      setMessage("Tafadhali jaza sehemu zote");
-      return;
+  useEffect(() => {
+    async function fetchProducts() {
+      const { data } = await supabase
+        .from("products")
+        .select("*")
+        .order("id", { ascending: false });
+      if (data) setProducts(data);
+      setLoading(false);
     }
 
-    setMessage("Oda yako imepokelewa! Tutawasiliana nawe hivi karibuni.");
-    
-    // Baada ya sekunde 2 rudi homepage
-    setTimeout(() => {
-      router.push("/");
-    }, 2500);
-  };
+    async function getUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    }
+
+    fetchProducts();
+    getUser();
+  }, []);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setUser(null);
+    router.push("/");
+  }
+
+  const filtered = products.filter((p) => {
+    const matchCategory = category === "All" || p.category === category;
+    const matchSearch =
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.description &&
+        p.description.toLowerCase().includes(search.toLowerCase()));
+    return matchCategory && matchSearch;
+  });
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-orange-500 text-white p-4">
+      {/* Header */}
+      <header className="bg-orange-500 text-white p-4 shadow-md">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">Zigaba Market</h1>
-          <button
-            onClick={() => router.push("/")}
-            className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
-          >
-            ← Rudi Nyumbani
-          </button>
+          <div className="flex gap-4 items-center">
+            {user ? (
+              <>
+                <span className="text-sm">
+                  Habari, {user.user_metadata?.full_name || user.email}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => router.push("/login")}
+                  className="hover:underline"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => router.push("/register")}
+                  className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+                >
+                  Register
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => router.push("/seller")}
+              className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+            >
+              Seller
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold mb-6 text-center">
-            Malipo / Checkout
-          </h2>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Jina Kamili
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Andika jina lako"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Namba ya Simu
-              </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="07XX XXX XXX"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Anuani / Location
-              </label>
-              <textarea
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Andika mahali unapoishi"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
-                rows={3}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Njia ya Malipo
-              </label>
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
-              >
-                <option value="M-Pesa">M-Pesa</option>
-                <option value="Tigo Pesa">Tigo Pesa</option>
-                <option value="Airtel Money">Airtel Money</option>
-                <option value="Cash on Delivery">Cash on Delivery</option>
-              </select>
-            </div>
-
-            {message && (
-              <p className="text-green-600 text-center font-medium">
-                {message}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600"
-            >
-              Thibitisha Oda
-            </button>
-          </form>
+      {/* Search */}
+      <div className="bg-white p-4 shadow">
+        <div className="max-w-6xl mx-auto">
+          <input
+            type="text"
+            placeholder="Tafuta bidhaa..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-orange-500"
+          />
         </div>
+      </div>
+
+      {/* Categories */}
+      <div className="max-w-6xl mx-auto p-4">
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {["All", "Electronics", "Fashion", "Home & Kitchen", "Groceries"].map(
+            (cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategory(cat)}
+                className={`px-4 py-2 rounded-full whitespace-nowrap ${
+                  category === cat
+                    ? "bg-orange-500 text-white"
+                    : "bg-white text-gray-700"
+                }`}
+              >
+                {cat}
+              </button>
+            )
+          )}
+        </div>
+      </div>
+
+      {/* Products */}
+      <div className="max-w-6xl mx-auto p-4">
+        <h2 className="text-xl font-bold mb-4">Bidhaa</h2>
+
+        {loading ? (
+          <p>Inapakia...</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-center text-gray-500">Hakuna bidhaa zilizopatikana</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {filtered.map((product) => {
+              const firstImage = product.image_url
+                ? product.image_url.split(",")[0]
+                : null;
+
+              return (
+                <div
+                  key={product.id}
+                  onClick={() => router.push(`/product/${product.id}`)}
+                  className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg cursor-pointer"
+                >
+                  {firstImage ? (
+                    <img
+                      src={firstImage}
+                      alt={product.name}
+                      className="h-40 w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-40 bg-gray-200 flex items-center justify-center text-4xl">
+                      📦
+                    </div>
+                  )}
+                  <div className="p-3">
+                    <p className="text-xs text-gray-500">{product.category}</p>
+                    <h3 className="font-semibold truncate">{product.name}</h3>
+                    <p className="text-orange-500 font-bold mt-1">
+                      TSh {Number(product.price).toLocaleString()}
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(
+                          `/checkout?id=\( {product.id}&name= \){encodeURIComponent(
+                            product.name
+                          )}&price=${product.price}`
+                        );
+                      }}
+                      className="mt-2 w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
+                    >
+                      Nunua Sasa
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
