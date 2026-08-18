@@ -56,6 +56,12 @@ export default function ProductDetail() {
     ? product.image_url.split(",").filter((url: string) => url.trim() !== "")
     : [];
 
+  const whatsappNumber = product.seller_phone
+    ? product.seller_phone.replace(/^0/, "255")
+    : "";
+
+  const whatsappLink = `https://wa.me/${whatsappNumber}?text=Habari, nimevutiwa na bidhaa yako: ${product.name} - TSh ${Number(product.price).toLocaleString()}`;
+
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-orange-500 text-white p-4">
@@ -128,9 +134,32 @@ export default function ProductDetail() {
               </p>
             </div>
 
-            <button className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600">
-              Ongeza kwenye Cart
-            </button>
+            {/* Buttons */}
+            <div className="space-y-3">
+              <button
+                onClick={() =>
+                  router.push(
+                    `/checkout?id=\( {product.id}&name= \){encodeURIComponent(
+                      product.name
+                    )}&price=${product.price}`
+                  )
+                }
+                className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600"
+              >
+                Nunua Sasa
+              </button>
+
+              {product.seller_phone && (
+                <a
+                  href={whatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full bg-green-500 text-white py-3 rounded-lg font-semibold text-center hover:bg-green-600"
+                >
+                  Chat na Muuzaji (WhatsApp)
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </div>
