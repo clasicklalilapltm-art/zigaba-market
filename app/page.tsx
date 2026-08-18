@@ -13,6 +13,7 @@ export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("All");
+  const [search, setSearch] = useState("");
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
@@ -26,7 +27,9 @@ export default function Home() {
     }
 
     async function getUser() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setUser(user);
     }
 
@@ -40,10 +43,14 @@ export default function Home() {
     router.push("/");
   }
 
-  const filtered =
-    category === "All"
-      ? products
-      : products.filter((p) => p.category === category);
+  const filtered = products.filter((p) => {
+    const matchCategory = category === "All" || p.category === category;
+    const matchSearch =
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.description &&
+        p.description.toLowerCase().includes(search.toLowerCase()));
+    return matchCategory && matchSearch;
+  });
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -96,6 +103,8 @@ export default function Home() {
           <input
             type="text"
             placeholder="Tafuta bidhaa..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-orange-500"
           />
         </div>
@@ -128,6 +137,8 @@ export default function Home() {
 
         {loading ? (
           <p>Inapakia...</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-center text-gray-500">Hakuna bidhaa zilizopatikana</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {filtered.map((product) => {
