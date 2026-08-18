@@ -17,6 +17,7 @@ export default function SellerPage() {
   const [sellerPhone, setSellerPhone] = useState("");
   const [location, setLocation] = useState("");
   const [region, setRegion] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -24,6 +25,24 @@ export default function SellerPage() {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+
+    let imageUrl = "";
+
+    if (file) {
+      const fileName = `\( {Date.now()}- \){file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("products")
+        .upload(fileName, file);
+
+      if (uploadError) {
+        setMessage("Hitilafu ya upload: " + uploadError.message);
+        setLoading(false);
+        return;
+      }
+
+      const { data } = supabase.storage.from("products").getPublicUrl(fileName);
+      imageUrl = data.publicUrl;
+    }
 
     const { error } = await supabase.from("products").insert([
       {
@@ -34,6 +53,7 @@ export default function SellerPage() {
         seller_phone: sellerPhone,
         location,
         region,
+        image_url: imageUrl,
       },
     ]);
 
@@ -47,6 +67,7 @@ export default function SellerPage() {
       setSellerPhone("");
       setLocation("");
       setRegion("");
+      setFile(null);
     }
     setLoading(false);
   }
@@ -113,6 +134,16 @@ export default function SellerPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full border rounded-lg px-4 py-2"
                 rows={3}
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-1">Picha au Video</label>
+              <input
+                type="file"
+                accept="image/*,video/*"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                className="w-full border rounded-lg px-4 py-2"
               />
             </div>
 
