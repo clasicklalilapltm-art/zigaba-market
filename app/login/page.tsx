@@ -1,98 +1,92 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = "https://tzrpmrwkglgjvsejgmab.supabase.co";
+const supabaseAnonKey = "sb_publishable_0Qtlmnmvh8gRWgosymiPxw_QJQds012";
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleLogin(e: any) {
     e.preventDefault();
-    setMessage("");
     setLoading(true);
+    setMessage("");
 
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
+      email,
+      password,
     });
 
-    setLoading(false);
-
     if (error) {
-      setMessage("Kosa: " + error.message);
+      setMessage("Hitilafu: " + error.message);
     } else {
       setMessage("Umefanikiwa kuingia!");
-      // Baada ya sekunde 1, nenda Homepage
       setTimeout(() => {
         router.push("/");
       }, 1000);
     }
-  };
+    setLoading(false);
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center text-orange-500 mb-2">
-          Zigaba Market
-        </h1>
-        <h2 className="text-xl font-semibold text-center mb-6">Login</h2>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+        <h1 className="text-2xl font-bold text-center mb-6">Ingia - Zigaba Market</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Email au Phone
-            </label>
+            <label className="block font-semibold mb-1">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Andika email"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
+              className="w-full border rounded-lg px-4 py-2"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
+            <label className="block font-semibold mb-1">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Andika password"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
+              className="w-full border rounded-lg px-4 py-2"
               required
             />
           </div>
 
-          {message && (
-            <p
-              className={`text-sm text-center ${
-                message.includes("Kosa") ? "text-red-500" : "text-green-600"
-              }`}
-            >
-              {message}
-            </p>
-          )}
-
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-500 text-white py-2 rounded-lg font-semibold hover:bg-orange-600 disabled:bg-orange-300"
+            className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600"
           >
-            {loading ? "Inaingia..." : "Login"}
+            {loading ? "Inaingia..." : "Ingia"}
           </button>
         </form>
 
-        <p className="text-center mt-4 text-sm">
+        {message && (
+          <p className="mt-4 text-center text-sm font-semibold text-green-600">
+            {message}
+          </p>
+        )}
+
+        <p className="mt-6 text-center text-sm">
           Huna account?{" "}
-          <a href="/register" className="text-orange-500 hover:underline">
-            Jisajili hapa
-          </a>
+          <button
+            onClick={() => router.push("/register")}
+            className="text-orange-500 font-semibold"
+          >
+            Jisajili
+          </button>
         </p>
       </div>
     </div>
