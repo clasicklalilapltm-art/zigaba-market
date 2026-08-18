@@ -6,7 +6,6 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = "https://tzrpmrwkglgjvsejgmab.supabase.co";
 const supabaseAnonKey = "sb_publishable_0Qtlmnmvh8gRWgosymiPxw_QJQds012";
-
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function ProductDetail() {
@@ -14,6 +13,7 @@ export default function ProductDetail() {
   const router = useRouter();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [currentImage, setCurrentImage] = useState(0);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -22,10 +22,6 @@ export default function ProductDetail() {
         .select("*")
         .eq("id", Number(params.id))
         .single();
-
-      console.log("Looking for ID:", params.id);
-      console.log("Data:", data);
-      console.log("Error:", error);
 
       if (error || !data) {
         setProduct(null);
@@ -56,6 +52,10 @@ export default function ProductDetail() {
     );
   }
 
+  const images = product.image_url
+    ? product.image_url.split(",").filter((url: string) => url.trim() !== "")
+    : [];
+
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-orange-500 text-white p-4">
@@ -72,10 +72,11 @@ export default function ProductDetail() {
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="h-64 bg-gray-200 flex items-center justify-center">
-            {product.image_url ? (
+          {/* Image Gallery */}
+          <div className="h-80 bg-gray-200 flex items-center justify-center relative">
+            {images.length > 0 ? (
               <img
-                src={product.image_url}
+                src={images[currentImage]}
                 alt={product.name}
                 className="h-full w-full object-cover"
               />
@@ -83,6 +84,26 @@ export default function ProductDetail() {
               <span className="text-8xl">📦</span>
             )}
           </div>
+
+          {/* Thumbnails */}
+          {images.length > 1 && (
+            <div className="flex gap-2 p-4 overflow-x-auto">
+              {images.map((url: string, index: number) => (
+                <img
+                  key={index}
+                  src={url}
+                  alt={`Picha ${index + 1}`}
+                  onClick={() => setCurrentImage(index)}
+                  className={`h-16 w-16 object-cover rounded cursor-pointer border-2 ${
+                    currentImage === index
+                      ? "border-orange-500"
+                      : "border-transparent"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
           <div className="p-6">
             <p className="text-sm text-gray-500 mb-1">{product.category}</p>
             <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
