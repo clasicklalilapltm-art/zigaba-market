@@ -10,29 +10,52 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function SellerDashboard() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchData() {
+    async function loadData() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      setUser(user);
+
+      // Bidhaa za seller huyu pekee
+      const { data: productsData } = await supabase
+        .from("products")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("id", { ascending: false });
+
+      // Oda zote (kwa sasa). Baadaye tutachuja kwa seller
       const { data: ordersData } = await supabase
         .from("orders")
         .select("*")
         .order("id", { ascending: false });
 
-      const { data: productsData } = await supabase
-        .from("products")
-        .select("*")
-        .order("id", { ascending: false });
-
-      if (ordersData) setOrders(ordersData);
       if (productsData) setProducts(productsData);
+      if (ordersData) setOrders(ordersData);
       setLoading(false);
     }
 
-    fetchData();
+    loadData();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Inapakia...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -57,14 +80,13 @@ export default function SellerDashboard() {
       </header>
 
       <div className="max-w-6xl mx-auto p-6 space-y-8">
+        {/* Orders */}
         <div>
           <h2 className="text-xl font-bold mb-4">
             Oda Zilizopokelewa ({orders.length})
           </h2>
 
-          {loading ? (
-            <p>Inapakia...</p>
-          ) : orders.length === 0 ? (
+          {orders.length === 0 ? (
             <p className="text-gray-500">Hakuna oda bado</p>
           ) : (
             <div className="space-y-3">
@@ -97,13 +119,14 @@ export default function SellerDashboard() {
           )}
         </div>
 
+        {/* Products */}
         <div>
           <h2 className="text-xl font-bold mb-4">
             Bidhaa Zangu ({products.length})
           </h2>
 
-          {loading ? (
-            <p>Inapakia...</p>
+          {products.length === 0 ? (
+            <p className="text-gray-500">Hujatoongeza bidhaa bado</p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {products.map((product) => {
