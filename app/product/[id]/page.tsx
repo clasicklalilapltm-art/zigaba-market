@@ -13,26 +13,31 @@ export default function ProductDetail() {
   const router = useRouter();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [currentImage, setCurrentImage] = useState(0);
 
   useEffect(() => {
-    async function fetchProduct() {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("id", Number(params.id))
-        .single();
+    async function getProduct() {
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .eq("id", Number(params.id))
+          .single();
 
-      if (error || !data) {
+        if (error) {
+          console.log(error);
+          setProduct(null);
+        } else {
+          setProduct(data);
+        }
+      } catch (err) {
+        console.log(err);
         setProduct(null);
-      } else {
-        setProduct(data);
       }
       setLoading(false);
     }
 
     if (params.id) {
-      fetchProduct();
+      getProduct();
     }
   }, [params.id]);
 
@@ -46,20 +51,21 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
         <p>Bidhaa haipatikani</p>
+        <button
+          onClick={() => router.push("/")}
+          className="bg-orange-500 text-white px-4 py-2 rounded"
+        >
+          Rudi Nyumbani
+        </button>
       </div>
     );
   }
 
   const images = product.image_url
-    ? product.image_url.split(",").filter((url: string) => url.trim() !== "")
+    ? product.image_url.split(",").filter((u: string) => u.trim() !== "")
     : [];
-
-  const phone = product.seller_phone || "";
-  const whatsappNumber = phone.startsWith("0")
-    ? "255" + phone.slice(1)
-    : phone;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -70,72 +76,43 @@ export default function ProductDetail() {
             onClick={() => router.push("/")}
             className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
           >
-            ← Rudi Nyumbani
+            ← Rudi
           </button>
         </div>
       </header>
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          {/* Image */}
-          <div className="h-80 bg-gray-200 flex items-center justify-center">
-            {images.length > 0 ? (
+          <div className="h-72 bg-gray-200 flex items-center justify-center">
+            {images[0] ? (
               <img
-                src={images[currentImage]}
+                src={images[0]}
                 alt={product.name}
                 className="h-full w-full object-cover"
               />
             ) : (
-              <span className="text-8xl">📦</span>
+              <span className="text-6xl">📦</span>
             )}
           </div>
 
-          {/* Thumbnails */}
-          {images.length > 1 && (
-            <div className="flex gap-2 p-4 overflow-x-auto">
-              {images.map((url: string, index: number) => (
-                <img
-                  key={index}
-                  src={url}
-                  alt={"Picha " + (index + 1)}
-                  onClick={() => setCurrentImage(index)}
-                  className={
-                    "h-16 w-16 object-cover rounded cursor-pointer border-2 " +
-                    (currentImage === index
-                      ? "border-orange-500"
-                      : "border-transparent")
-                  }
-                />
-              ))}
-            </div>
-          )}
-
           <div className="p-6">
-            <p className="text-sm text-gray-500 mb-1">{product.category}</p>
-            <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-            <p className="text-2xl text-orange-500 font-bold mb-4">
+            <p className="text-sm text-gray-500">{product.category}</p>
+            <h1 className="text-2xl font-bold mt-1">{product.name}</h1>
+            <p className="text-2xl text-orange-500 font-bold mt-2">
               TSh {Number(product.price).toLocaleString()}
             </p>
-            <p className="text-gray-700 mb-6">{product.description}</p>
+            <p className="mt-4 text-gray-700">{product.description}</p>
 
-            <div className="border-t pt-4 mb-6">
-              <h3 className="font-bold text-lg mb-2">Maelezo ya Muuzaji</h3>
+            <div className="mt-6 border-t pt-4">
               <p>
-                <span className="font-semibold">Simu:</span>{" "}
-                {product.seller_phone || "Haipo"}
+                <b>Simu:</b> {product.seller_phone || "Haipo"}
               </p>
               <p>
-                <span className="font-semibold">Eneo:</span>{" "}
-                {product.location || "Haipo"}
-              </p>
-              <p>
-                <span className="font-semibold">Mkoa:</span>{" "}
-                {product.region || "Haipo"}
+                <b>Eneo:</b> {product.location || "Haipo"}
               </p>
             </div>
 
-            {/* Buttons */}
-            <div className="space-y-3">
+            <div className="mt-6 space-y-3">
               <button
                 onClick={() =>
                   router.push(
@@ -147,7 +124,7 @@ export default function ProductDetail() {
                       product.price
                   )
                 }
-                className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600"
+                className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold"
               >
                 Nunua Sasa
               </button>
@@ -156,15 +133,16 @@ export default function ProductDetail() {
                 <a
                   href={
                     "https://wa.me/" +
-                    whatsappNumber +
+                    (product.seller_phone.startsWith("0")
+                      ? "255" + product.seller_phone.slice(1)
+                      : product.seller_phone) +
                     "?text=" +
                     encodeURIComponent(
                       "Habari, nimevutiwa na bidhaa yako: " + product.name
                     )
                   }
                   target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full bg-green-500 text-white py-3 rounded-lg font-semibold text-center hover:bg-green-600"
+                  className="block w-full bg-green-500 text-white py-3 rounded-lg font-semibold text-center"
                 >
                   Chat na Muuzaji (WhatsApp)
                 </a>
