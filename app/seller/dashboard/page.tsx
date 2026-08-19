@@ -57,9 +57,10 @@ export default function SellerDashboard() {
       </header>
 
       <div className="max-w-6xl mx-auto p-6 space-y-8">
-        {/* Orders */}
         <div>
-          <h2 className="text-xl font-bold mb-4">Oda Zilizopokelewa ({orders.length})</h2>
+          <h2 className="text-xl font-bold mb-4">
+            Oda Zilizopokelewa ({orders.length})
+          </h2>
 
           {loading ? (
             <p>Inapakia...</p>
@@ -96,9 +97,10 @@ export default function SellerDashboard() {
           )}
         </div>
 
-        {/* Products */}
         <div>
-          <h2 className="text-xl font-bold mb-4">Bidhaa Zangu ({products.length})</h2>
+          <h2 className="text-xl font-bold mb-4">
+            Bidhaa Zangu ({products.length})
+          </h2>
 
           {loading ? (
             <p>Inapakia...</p>
