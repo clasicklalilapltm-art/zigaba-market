@@ -56,9 +56,14 @@ export default function SellerPage() {
           if (data?.publicUrl) {
             imageUrls.push(data.publicUrl);
           }
+        } else {
+          console.error("Upload error:", uploadError);
         }
       }
     }
+
+    console.log("Image URLs:", imageUrls);
+    console.log("Joined:", imageUrls.join(","));
 
     const { error } = await supabase.from("products").insert([
       {
@@ -76,6 +81,7 @@ export default function SellerPage() {
 
     if (error) {
       setMessage("Hitilafu: " + error.message);
+      console.error(error);
     } else {
       setMessage("Bidhaa imeongezwa kwa mafanikio!");
       setName("");
