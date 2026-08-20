@@ -62,9 +62,7 @@ export default function CheckoutPage() {
       setMessage("Kosa: " + error.message);
     } else {
       if (paymentMethod === "direct") {
-        setMessage(
-          "Oda imepokelewa! Wasiliana na muuzaji moja kwa moja."
-        );
+        setMessage("Oda imepokelewa! Wasiliana na muuzaji moja kwa moja.");
       } else {
         setMessage(
           "Oda imepokelewa! Lipa Zigaba Market. Muuzaji ataleta mzigo ofisini."
@@ -75,8 +73,16 @@ export default function CheckoutPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Inapakia bidhaa...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <p className="mb-4">Inapakia bidhaa...</p>
+          <button
+            onClick={() => router.push("/")}
+            className="bg-orange-500 text-white px-6 py-2 rounded-lg"
+          >
+            Rudi Nyumbani
+          </button>
+        </div>
       </div>
     );
   }
@@ -118,8 +124,7 @@ export default function CheckoutPage() {
             <div>
               <p className="font-semibold">Lipa Muuzaji Moja kwa Moja</p>
               <p className="text-sm text-gray-600">
-                Utawasiliana na muuzaji na kulipa moja kwa moja (M-Pesa, Tigo,
-                Airtel)
+                Utawasiliana na muuzaji na kulipa moja kwa moja (M-Pesa, Tigo, Airtel)
               </p>
             </div>
           </label>
@@ -139,8 +144,7 @@ export default function CheckoutPage() {
               </p>
               <p className="text-sm text-gray-600">
                 Unalipa Zigaba. Muuzaji analeta mzigo ofisini. Baada ya kupokea
-                na kuhakiki, Zigaba inampa muuzaji hela. Hii inakulinda
-                usipeliwe.
+                na kuhakiki, Zigaba inampa muuzaji hela. Hii inakulinda usipeliwe.
               </p>
             </div>
           </label>
