@@ -138,7 +138,7 @@ export default function Home() {
                   )}
                 </div>
                 <div className="p-3">
-                  <h3 className="font-bold text-base truncate">{product.name}</h3>
+                  <h3 className="font-bold text-base text-black truncate">{product.name}</h3>
                   <p className="text-orange-500 font-bold text-lg mt-1">
                     TSh {Number(product.price).toLocaleString()}
                   </p>
