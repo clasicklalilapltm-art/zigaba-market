@@ -8,14 +8,12 @@ export default function SellerOrders() {
   const router = useRouter();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     async function load() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      setUser(user);
 
       if (!user) {
         router.push("/login");
@@ -63,10 +61,7 @@ export default function SellerOrders() {
         ) : (
           <div className="space-y-4">
             {orders.map((order) => (
-              <div
-                key={order.id}
-                className="bg-white rounded-lg shadow p-4"
-              >
+              <div key={order.id} className="bg-white rounded-lg shadow p-4">
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-bold text-lg">{order.product_name}</h3>
@@ -93,9 +88,7 @@ export default function SellerOrders() {
                     className={`px-3 py-1 rounded-full text-sm font-semibold ${
                       order.status === "pending"
                         ? "bg-yellow-100 text-yellow-800"
-                        : order.status === "direct"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-green-100 text-green-800"
+                        : "bg-blue-100 text-blue-800"
                     }`}
                   >
                     {order.status}
