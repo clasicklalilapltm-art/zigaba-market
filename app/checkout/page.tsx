@@ -1,83 +1,76 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = "https://tzrpmrwkglgjvsejgmab.supabase.co";
-const supabaseAnonKey = "sb_publishable_0Qtlmnmvh8gRWgosymiPxw_QJQds012";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { useRouter, useSearchParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [location, setLocation] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const searchParams = useSearchParams();
+  const productId = searchParams.get("id");
+
   const [product, setProduct] = useState<any>(null);
+  const [paymentMethod, setPaymentMethod] = useState("direct");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [location, setLocation] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    // Soma data kutoka URL
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get("id");
-      const name = params.get("name");
-      const price = params.get("price");
-
-      if (id && name && price) {
-        setProduct({ id, name, price });
-      }
+    async function loadProduct() {
+      if (!productId) return;
+      const { data } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", productId)
+        .single();
+      if (data) setProduct(data);
     }
-  }, []);
+    loadProduct();
+  }, [productId]);
 
-  async function handleOrder(e: any) {
-    e.preventDefault();
-    if (!product) return;
+  const handleOrder = async () => {
+    if (!customerName || !customerPhone || !location) {
+      setMessage("Tafadhali jaza sehemu zote");
+      return;
+    }
 
     setLoading(true);
     setMessage("");
 
-    const { error } = await supabase.from("orders").insert([
-      {
-        product_id: Number(product.id),
-        product_name: product.name,
-        price: Number(product.price),
-        customer_name: name,
-        customer_phone: phone,
-        location: location,
-        payment_method: paymentMethod,
-        status: "pending",
-      },
-    ]);
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (error) {
-      setMessage("Hitilafu: " + error.message);
-    } else {
-      setMessage(
-        "Asante " +
-          name +
-          "!\n\nOda yako imepokelewa.\n\nBidhaa: " +
-          product.name +
-          "\nBei: TSh " +
-          Number(product.price).toLocaleString()
-      );
-    }
+    const { error } = await supabase.from("orders").insert({
+      product_id: product.id,
+      product_name: product.name,
+      price: product.price,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      location: location,
+      payment_method: paymentMethod,
+      status: paymentMethod === "zigaba" ? "pending" : "direct",
+      seller_phone: product.phone || "",
+      buyer_id: user?.id || null,
+    });
 
     setLoading(false);
-  }
+
+    if (error) {
+      setMessage("Kosa: " + error.message);
+    } else {
+      if (paymentMethod === "direct") {
+        setMessage("Oda imepokelewa! Wasiliana na muuzaji moja kwa moja.");
+      } else {
+        setMessage("Oda imepokelewa! Lipa Zigaba Market. Muuzaji ataleta mzigo ofisini.");
+      }
+    }
+  };
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-        <p>Hakuna bidhaa iliyochaguliwa</p>
-        <button
-          onClick={() => router.push("/")}
-          className="bg-orange-500 text-white px-4 py-2 rounded"
-        >
-          Rudi Nyumbani
-        </button>
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Inapakia bidhaa...</p>
       </div>
     );
   }
@@ -85,10 +78,10 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-orange-500 text-white p-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Zigaba Market - Checkout</h1>
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
+          <h1 className="text-xl font-bold">Checkout</h1>
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.back()}
             className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
           >
             ← Rudi
@@ -96,114 +89,92 @@ export default function CheckoutPage() {
         </div>
       </header>
 
-      <div className="max-w-md mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold mb-4">Thibitisha Oda</h2>
-
-          <div className="mb-6 p-4 bg-gray-50 rounded">
-            <p className="font-semibold">{product.name}</p>
-            <p className="text-orange-500 font-bold text-lg">
-              TSh {Number(product.price).toLocaleString()}
-            </p>
-          </div>
-
-          <form onSubmit={handleOrder} className="space-y-4">
-            <div>
-              <label className="block font-semibold mb-1">Jina lako</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold mb-1">Namba ya Simu</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2"
-                placeholder="07XXXXXXXX"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold mb-1">Mahali pa kupokelea</label>
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2"
-                placeholder="Mfano: Ukonga"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold mb-2">Njia ya Malipo</label>
-              <div className="space-y-2">
-                <label className="flex items-center gap-3 p-3 border rounded-lg">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="cod"
-                    checked={paymentMethod === "cod"}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  />
-                  Lipa baada ya kupokea
-                </label>
-                <label className="flex items-center gap-3 p-3 border rounded-lg">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="mpesa"
-                    checked={paymentMethod === "mpesa"}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  />
-                  M-Pesa
-                </label>
-                <label className="flex items-center gap-3 p-3 border rounded-lg">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="tigopesa"
-                    checked={paymentMethod === "tigopesa"}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  />
-                  Tigo Pesa
-                </label>
-                <label className="flex items-center gap-3 p-3 border rounded-lg">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="airtel"
-                    checked={paymentMethod === "airtel"}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  />
-                  Airtel Money
-                </label>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold"
-            >
-              {loading ? "Inashughulikiwa..." : "Thibitisha Oda"}
-            </button>
-          </form>
-
-          {message && (
-            <div className="mt-6 p-4 bg-green-50 text-green-800 rounded-lg whitespace-pre-line text-sm">
-              {message}
-            </div>
-          )}
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="bg-white rounded-lg shadow p-6 mb-4">
+          <h2 className="text-xl font-bold mb-2">{product.name}</h2>
+          <p className="text-orange-500 font-bold text-2xl">
+            TSh {Number(product.price).toLocaleString()}
+          </p>
         </div>
+
+        <div className="bg-white rounded-lg shadow p-6 mb-4">
+          <h3 className="font-bold mb-3">Chagua Njia ya Malipo</h3>
+
+          <label className="flex items-start gap-3 p-3 border rounded-lg mb-3 cursor-pointer">
+            <input
+              type="radio"
+              name="payment"
+              value="direct"
+              checked={paymentMethod === "direct"}
+              onChange={() => setPaymentMethod("direct")}
+              className="mt-1"
+            />
+            <div>
+              <p className="font-semibold">Lipa Muuzaji Moja kwa Moja</p>
+              <p className="text-sm text-gray-600">
+                Utawasiliana na muuzaji na kulipa moja kwa moja (M-Pesa, Tigo, Airtel)
+              </p>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer bg-orange-50">
+            <input
+              type="radio"
+              name="payment"
+              value="zigaba"
+              checked={paymentMethod === "zigaba"}
+              onChange={() => setPaymentMethod("zigaba")}
+              className="mt-1"
+            />
+            <div>
+              <p className="font-semibold text-orange-600">Lipa Zigaba Market (Salama)</p>
+              <p className="text-sm text-gray-600">
+                Unalipa Zigaba. Muuzaji analeta mzigo ofisini. Baada ya kupokea na kuhakiki, 
+                Zigaba inampa muuzaji hela. Hii inakulinda usipeliwe.
+              </p>
+            </div>
+          </label>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6 mb-4">
+          <h3 className="font-bold mb-3">Maelezo yako</h3>
+
+          <input
+            type="text"
+            placeholder="Jina lako"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            className="w-full border rounded-lg px-4 py-3 mb-3"
+          />
+          <input
+            type="text"
+            placeholder="Namba ya simu"
+            value={customerPhone}
+            onChange={(e) => setCustomerPhone(e.target.value)}
+            className="w-full border rounded-lg px-4 py-3 mb-3"
+          />
+          <input
+            type="text"
+            placeholder="Eneo / Location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full border rounded-lg px-4 py-3 mb-3"
+          />
+        </div>
+
+        {message && (
+          <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-4">
+            {message}
+          </div>
+        )}
+
+        <button
+          onClick={handleOrder}
+          disabled={loading}
+          className="w-full bg-orange-500 text-white py-4 rounded-lg font-bold text-lg hover:bg-orange-600 disabled:opacity-50"
+        >
+          {loading ? "Inatuma..." : "Thibitisha Oda"}
+        </button>
       </div>
     </div>
   );
