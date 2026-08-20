@@ -54,14 +54,22 @@ export default function SellerOrders() {
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-orange-500 text-white p-4">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
+        <div className="max-w-4xl mx-auto flex justify-between items-center flex-wrap gap-2">
           <h1 className="text-xl font-bold">Seller Dashboard</h1>
-          <button
-            onClick={() => router.push("/")}
-            className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
-          >
-            ← Rudi
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => router.push("/seller")}
+              className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+            >
+              Ongeza Bidhaa
+            </button>
+            <button
+              onClick={() => router.push("/")}
+              className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+            >
+              ← Rudi
+            </button>
+          </div>
         </div>
       </header>
 
