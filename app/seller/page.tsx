@@ -20,7 +20,9 @@ export default function SellerPage() {
 
   useEffect(() => {
     async function checkUser() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         router.push("/login");
         return;
@@ -37,51 +39,48 @@ export default function SellerPage() {
     setLoading(true);
     setMessage("");
 
-    let imageUrls: string[] = [];
+    const imageUrls: string[] = [];
 
     if (files && files.length > 0) {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const fileName = `\( {Date.now()}- \){i}-${file.name}`;
+        const fileName = `\( {Date.now()}- \){file.name}`;
 
         const { error: uploadError } = await supabase.storage
           .from("products")
           .upload(fileName, file);
 
-        if (!uploadError) {
-          const { data } = supabase.storage
-            .from("products")
-            .getPublicUrl(fileName);
-
-          if (data?.publicUrl) {
-            imageUrls.push(data.publicUrl);
-          }
-        } else {
+        if (uploadError) {
           console.error("Upload error:", uploadError);
+          setMessage("Hitilafu ya kupakia picha: " + uploadError.message);
+          setLoading(false);
+          return;
         }
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("products").getPublicUrl(fileName);
+
+        imageUrls.push(publicUrl);
       }
     }
 
-    console.log("Image URLs:", imageUrls);
-    console.log("Joined:", imageUrls.join(","));
+    const { error } = await supabase.from("products").insert({
+      name,
+      price: Number(price),
+      category,
+      description,
+      seller_phone: sellerPhone,
+      location,
+      region,
+      image_url: imageUrls.join(","),
+      user_id: user.id,
+    });
 
-    const { error } = await supabase.from("products").insert([
-      {
-        name,
-        price: Number(price),
-        category,
-        description,
-        seller_phone: sellerPhone,
-        location,
-        region,
-        image_url: imageUrls.join(","),
-        user_id: user.id,
-      },
-    ]);
+    setLoading(false);
 
     if (error) {
       setMessage("Hitilafu: " + error.message);
-      console.error(error);
     } else {
       setMessage("Bidhaa imeongezwa kwa mafanikio!");
       setName("");
@@ -92,18 +91,16 @@ export default function SellerPage() {
       setRegion("");
       setFiles(null);
     }
-
-    setLoading(false);
   }
 
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-orange-500 text-white p-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Ongeza Bidhaa</h1>
-          <div className="flex gap-3">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
+          <h1 className="text-xl font-bold">Ongeza Bidhaa</h1>
+          <div className="flex gap-2">
             <button
-              onClick={() => router.push("/seller/dashboard")}
+              onClick={() => router.push("/seller-orders")}
               className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
             >
               Dashboard
