@@ -71,27 +71,37 @@ export default function ProductDetail() {
 
       <div className="max-w-4xl mx-auto p-4">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          {/* Picha nyingi */}
-          <div className="bg-gray-200">
-            {images.length > 0 ? (
-              <div className="flex overflow-x-auto snap-x snap-mandatory">
-                {images.map((img: string, index: number) => (
-                  <img
-                    key={index}
-                    src={img}
-                    alt={`${product.name} ${index + 1}`}
-                    className="h-80 w-full min-w-full object-cover snap-center"
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="h-80 flex items-center justify-center text-6xl">
-                📦
-              </div>
-            )}
-          </div>
-
-          <div className="p-6">
+{/* Picha nyingi */}
+<div className="bg-gray-200">
+  {images.length > 0 ? (
+    <>
+      <img
+        src={images[0]}
+        alt={product.name}
+        className="h-80 w-full object-cover"
+        id="mainImage"
+      />
+      {images.length > 1 && (
+        <div className="flex gap-2 p-2 overflow-x-auto">
+          {images.map((img: string, index: number) => (
+            <img
+              key={index}
+              src={img}
+              alt={`thumb ${index}`}
+              className="h-16 w-16 object-cover rounded cursor-pointer border-2 border-transparent hover:border-orange-500"
+              onClick={() => {
+                const main = document.getElementById("mainImage") as HTMLImageElement;
+                if (main) main.src = img;
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </>
+  ) : (
+    <div className="h-80 flex items-center justify-center text-6xl">📦</div>
+  )}
+</div>
             <p className="text-sm text-gray-500">{product.category}</p>
             <h1 className="text-2xl font-bold mt-1">{product.name}</h1>
             <p className="text-2xl text-orange-500 font-bold mt-2">
