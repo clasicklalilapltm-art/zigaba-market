@@ -2,44 +2,32 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = "https://tzrpmrwkglgjvsejgmab.supabase.co";
-const supabaseAnonKey = "sb_publishable_0Qtlmnmvh8gRWgosymiPxw_QJQds012";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from "@/lib/supabase";
 
 export default function ProductDetail() {
-  const params = useParams();
+  const { id } = useParams();
   const router = useRouter();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function getProduct() {
-      try {
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .eq("id", Number(params.id))
-          .single();
+    async function fetchProduct() {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", id)
+        .single();
 
-        if (error) {
-          console.log(error);
-          setProduct(null);
-        } else {
-          setProduct(data);
-        }
-      } catch (err) {
-        console.log(err);
-        setProduct(null);
+      if (error) {
+        console.error(error);
+      } else {
+        setProduct(data);
       }
       setLoading(false);
     }
 
-    if (params.id) {
-      getProduct();
-    }
-  }, [params.id]);
+    if (id) fetchProduct();
+  }, [id]);
 
   if (loading) {
     return (
@@ -70,7 +58,7 @@ export default function ProductDetail() {
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-orange-500 text-white p-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">Zigaba Market</h1>
           <button
             onClick={() => router.push("/")}
@@ -81,17 +69,25 @@ export default function ProductDetail() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-4">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="h-72 bg-gray-200 flex items-center justify-center">
-            {images[0] ? (
-              <img
-                src={images[0]}
-                alt={product.name}
-                className="h-full w-full object-cover"
-              />
+          {/* Picha nyingi */}
+          <div className="bg-gray-200">
+            {images.length > 0 ? (
+              <div className="flex overflow-x-auto snap-x snap-mandatory">
+                {images.map((img: string, index: number) => (
+                  <img
+                    key={index}
+                    src={img}
+                    alt={`${product.name} - ${index + 1}`}
+                    className="h-80 w-full min-w-full object-cover snap-center"
+                  />
+                ))}
+              </div>
             ) : (
-              <span className="text-6xl">📦</span>
+              <div className="h-80 flex items-center justify-center">
+                <span className="text-6xl">📦</span>
+              </div>
             )}
           </div>
 
@@ -103,50 +99,34 @@ export default function ProductDetail() {
             </p>
             <p className="mt-4 text-gray-700">{product.description}</p>
 
+            {/* Seller Info */}
             <div className="mt-6 border-t pt-4">
+              <h3 className="font-bold text-lg mb-2">Maelezo ya Muuzaji</h3>
               <p>
                 <b>Simu:</b> {product.seller_phone || "Haipo"}
               </p>
               <p>
                 <b>Eneo:</b> {product.location || "Haipo"}
               </p>
+              <p>
+                <b>Mkoa:</b> {product.region || "Haipo"}
+              </p>
             </div>
 
-            <div className="mt-6 space-y-3">
+            <div className="mt-6 flex gap-3">
+              <a
+                href={`https://wa.me/${product.seller_phone?.replace(/\D/g, "")}?text=Habari, naomba bidhaa: ${product.name}`}
+                target="_blank"
+                className="flex-1 bg-green-500 text-white py-3 rounded-lg text-center font-semibold"
+              >
+                Chat WhatsApp
+              </a>
               <button
-                onClick={() =>
-                  router.push(
-                    "/checkout?id=" +
-                      product.id +
-                      "&name=" +
-                      encodeURIComponent(product.name) +
-                      "&price=" +
-                      product.price
-                  )
-                }
-                className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold"
+                onClick={() => router.push(`/checkout?product=${product.id}`)}
+                className="flex-1 bg-orange-500 text-white py-3 rounded-lg font-semibold"
               >
                 Nunua Sasa
               </button>
-
-              {product.seller_phone && (
-                <a
-                  href={
-                    "https://wa.me/" +
-                    (product.seller_phone.startsWith("0")
-                      ? "255" + product.seller_phone.slice(1)
-                      : product.seller_phone) +
-                    "?text=" +
-                    encodeURIComponent(
-                      "Habari, nimevutiwa na bidhaa yako: " + product.name
-                    )
-                  }
-                  target="_blank"
-                  className="block w-full bg-green-500 text-white py-3 rounded-lg font-semibold text-center"
-                >
-                  Chat na Muuzaji (WhatsApp)
-                </a>
-              )}
             </div>
           </div>
         </div>
