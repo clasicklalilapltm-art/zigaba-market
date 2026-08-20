@@ -10,6 +10,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [mainImage, setMainImage] = useState("");
+  const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -24,13 +25,13 @@ export default function ProductDetail() {
       } else {
         setProduct(data);
         if (data?.image_url) {
-          const first = data.image_url.split(",")[0].trim();
-          setMainImage(first);
+          const imgs = data.image_url.split(",").map((i: string) => i.trim());
+          setImages(imgs);
+          setMainImage(imgs[0]);
         }
       }
       setLoading(false);
     }
-
     if (id) fetchProduct();
   }, [id]);
 
@@ -44,27 +45,17 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+      <div className="min-h-screen flex items-center justify-center">
         <p>Bidhaa haipatikani</p>
-        <button
-          onClick={() => router.push("/")}
-          className="bg-orange-500 text-white px-4 py-2 rounded"
-        >
-          Rudi Nyumbani
-        </button>
       </div>
     );
   }
-
-  const images = product.image_url
-    ? product.image_url.split(",").map((u: string) => u.trim()).filter((u: string) => u !== "")
-    : [];
 
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-orange-500 text-white p-4">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Zigaba Market</h1>
+          <h1 className="text-xl font-bold">Zigaba Market</h1>
           <button
             onClick={() => router.push("/")}
             className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
@@ -75,62 +66,76 @@ export default function ProductDetail() {
       </header>
 
       <div className="max-w-4xl mx-auto p-4">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="bg-gray-200">
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          {/* Main Image */}
+          <div className="h-80 bg-gray-200 flex items-center justify-center">
             {mainImage ? (
               <img
                 src={mainImage}
                 alt={product.name}
-                className="h-80 w-full object-cover"
+                className="h-full w-full object-cover"
               />
             ) : (
-              <div className="h-80 flex items-center justify-center text-6xl">📦</div>
-            )}
-
-            {images.length > 1 && (
-              <div className="flex gap-2 p-2 overflow-x-auto">
-                {images.map((img: string, index: number) => (
-                  <img
-                    key={index}
-                    src={img}
-                    alt={`thumb ${index}`}
-                    className="h-16 w-16 object-cover rounded cursor-pointer border-2 border-transparent hover:border-orange-500"
-                    onClick={() => setMainImage(img)}
-                  />
-                ))}
-              </div>
+              <span className="text-6xl">📦</span>
             )}
           </div>
 
+          {/* Thumbnails */}
+          {images.length > 1 && (
+            <div className="flex gap-2 p-3 overflow-x-auto">
+              {images.map((img, i) => (
+                <img
+                  key={i}
+                  src={img}
+                  onClick={() => setMainImage(img)}
+                  className={`h-16 w-16 object-cover rounded cursor-pointer border-2 ${
+                    mainImage === img ? "border-orange-500" : "border-transparent"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
           <div className="p-6">
-            <p className="text-sm text-gray-500">{product.category}</p>
-            <h1 className="text-2xl font-bold mt-1">{product.name}</h1>
-            <p className="text-2xl text-orange-500 font-bold mt-2">
+            <p className="text-sm text-gray-500 mb-1">{product.category}</p>
+            <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
+            <p className="text-2xl text-orange-500 font-bold mb-4">
               TSh {Number(product.price).toLocaleString()}
             </p>
-            <p className="mt-4 text-gray-700">{product.description}</p>
+            <p className="text-gray-700 mb-6">{product.description}</p>
 
-            <div className="mt-6 border-t pt-4">
+            {/* Seller Info */}
+            <div className="border-t pt-4 mb-6">
               <h3 className="font-bold text-lg mb-2">Maelezo ya Muuzaji</h3>
-              <p><b>Simu:</b> {product.seller_phone || "Haipo"}</p>
-              <p><b>Eneo:</b> {product.location || "Haipo"}</p>
-              <p><b>Mkoa:</b> {product.region || "Haipo"}</p>
+              <p>
+                <b>Jina:</b> {product.seller || "Haipo"}
+              </p>
+              <p>
+                <b>Simu:</b> {product.phone || product.seller_phone || "Haipo"}
+              </p>
+              <p>
+                <b>Eneo:</b> {product.location || "Haipo"}
+              </p>
+              <p>
+                <b>Mkoa:</b> {product.region || "Haipo"}
+              </p>
             </div>
 
-            <div className="mt-6 flex gap-3">
+            {/* Buttons */}
+            <div className="flex gap-3">
               <a
-                href={`https://wa.me/${product.seller_phone?.replace(/\D/g, "")}?text=Habari, naomba bidhaa: ${product.name}`}
+                href={`https://wa.me/${(product.phone || product.seller_phone || "").replace(/\D/g, "")}`}
                 target="_blank"
                 className="flex-1 bg-green-500 text-white py-3 rounded-lg text-center font-semibold"
               >
                 Chat WhatsApp
               </a>
-              <button
-                onClick={() => router.push(`/checkout?product=${product.id}`)}
-                className="flex-1 bg-orange-500 text-white py-3 rounded-lg font-semibold"
+              <a
+                href={`/checkout?product=${product.id}`}
+                className="flex-1 bg-orange-500 text-white py-3 rounded-lg text-center font-semibold"
               >
                 Nunua Sasa
-              </button>
+              </a>
             </div>
           </div>
         </div>
