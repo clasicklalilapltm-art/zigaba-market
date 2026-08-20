@@ -197,14 +197,30 @@ function CheckoutContent() {
   return (
     <div className="min-h-screen bg-gray-100" dir={lang === "ar" ? "rtl" : "ltr"}>
       <header className="bg-orange-500 text-white p-4">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
+        <div className="max-w-4xl mx-auto flex justify-between items-center flex-wrap gap-2">
           <h1 className="text-xl font-bold">{text.checkout}</h1>
-          <button
-            onClick={() => router.back()}
-            className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
-          >
-            {text.back}
-          </button>
+          <div className="flex gap-2 items-center flex-wrap">
+            {["sw", "en", "fr", "zh", "ar"].map((code) => (
+              <button
+                key={code}
+                onClick={() => {
+                  setLang(code);
+                  localStorage.setItem("lang", code);
+                }}
+                className={`px-2 py-1 rounded text-xs font-bold ${
+                  lang === code ? "bg-white text-orange-500" : "bg-orange-600"
+                }`}
+              >
+                {code.toUpperCase()}
+              </button>
+            ))}
+            <button
+              onClick={() => router.back()}
+              className="bg-white text-orange-500 px-3 py-1 rounded font-semibold text-sm"
+            >
+              {text.back}
+            </button>
+          </div>
         </div>
       </header>
 
