@@ -238,10 +238,10 @@ export default function Home() {
             <div
               key={cat.key}
               onClick={() => setCategory(cat.key)}
-              className={`p-3 rounded-lg shadow text-center cursor-pointer font-semibold text-sm ${
+              className={`p-3 rounded-lg shadow text-center cursor-pointer font-bold text-sm ${
                 category === cat.key
                   ? "bg-orange-500 text-white"
-                  : "bg-white"
+                  : "bg-white text-black border border-gray-200"
               }`}
             >
               {cat.emoji} {cat.label}
@@ -251,7 +251,7 @@ export default function Home() {
       </div>
 
       <div className="max-w-6xl mx-auto p-4">
-        <h2 className="text-xl font-bold mb-4">
+        <h2 className="text-xl font-bold mb-4 text-black">
           {text.products} ({filtered.length})
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
