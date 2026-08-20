@@ -109,7 +109,7 @@ export default function SellerOrders() {
                   </span>
                 </div>
 
-                {order.status === "pending" && (
+                {(order.status === "pending" || order.status === "direct") && (
                   <button
                     onClick={() => updateStatus(order.id, "delivered")}
                     className="mt-3 w-full bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600"
