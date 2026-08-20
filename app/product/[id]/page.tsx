@@ -9,6 +9,7 @@ export default function ProductDetail() {
   const router = useRouter();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [mainImage, setMainImage] = useState("");
 
   useEffect(() => {
     async function fetchProduct() {
@@ -22,6 +23,10 @@ export default function ProductDetail() {
         console.error(error);
       } else {
         setProduct(data);
+        if (data?.image_url) {
+          const first = data.image_url.split(",")[0].trim();
+          setMainImage(first);
+        }
       }
       setLoading(false);
     }
@@ -71,37 +76,33 @@ export default function ProductDetail() {
 
       <div className="max-w-4xl mx-auto p-4">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-{/* Picha nyingi */}
-<div className="bg-gray-200">
-  {images.length > 0 ? (
-    <>
-      <img
-        src={images[0]}
-        alt={product.name}
-        className="h-80 w-full object-cover"
-        id="mainImage"
-      />
-      {images.length > 1 && (
-        <div className="flex gap-2 p-2 overflow-x-auto">
-          {images.map((img: string, index: number) => (
-            <img
-              key={index}
-              src={img}
-              alt={`thumb ${index}`}
-              className="h-16 w-16 object-cover rounded cursor-pointer border-2 border-transparent hover:border-orange-500"
-              onClick={() => {
-                const main = document.getElementById("mainImage") as HTMLImageElement;
-                if (main) main.src = img;
-              }}
-            />
-          ))}
-        </div>
-      )}
-    </>
-  ) : (
-    <div className="h-80 flex items-center justify-center text-6xl">📦</div>
-  )}
-</div>
+          <div className="bg-gray-200">
+            {mainImage ? (
+              <img
+                src={mainImage}
+                alt={product.name}
+                className="h-80 w-full object-cover"
+              />
+            ) : (
+              <div className="h-80 flex items-center justify-center text-6xl">📦</div>
+            )}
+
+            {images.length > 1 && (
+              <div className="flex gap-2 p-2 overflow-x-auto">
+                {images.map((img: string, index: number) => (
+                  <img
+                    key={index}
+                    src={img}
+                    alt={`thumb ${index}`}
+                    className="h-16 w-16 object-cover rounded cursor-pointer border-2 border-transparent hover:border-orange-500"
+                    onClick={() => setMainImage(img)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="p-6">
             <p className="text-sm text-gray-500">{product.category}</p>
             <h1 className="text-2xl font-bold mt-1">{product.name}</h1>
             <p className="text-2xl text-orange-500 font-bold mt-2">
@@ -111,15 +112,9 @@ export default function ProductDetail() {
 
             <div className="mt-6 border-t pt-4">
               <h3 className="font-bold text-lg mb-2">Maelezo ya Muuzaji</h3>
-              <p>
-                <b>Simu:</b> {product.seller_phone || "Haipo"}
-              </p>
-              <p>
-                <b>Eneo:</b> {product.location || "Haipo"}
-              </p>
-              <p>
-                <b>Mkoa:</b> {product.region || "Haipo"}
-              </p>
+              <p><b>Simu:</b> {product.seller_phone || "Haipo"}</p>
+              <p><b>Eneo:</b> {product.location || "Haipo"}</p>
+              <p><b>Mkoa:</b> {product.region || "Haipo"}</p>
             </div>
 
             <div className="mt-6 flex gap-3">
