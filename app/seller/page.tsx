@@ -118,7 +118,7 @@ export default function SellerPage() {
       <div className="max-w-md mx-auto p-6">
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-4">
           <div>
-            <label className="block font-semibold mb-1">Jina la Bidhaa</label>
+            <label className="block font-bold text-black mb-1">Jina la Bidhaa</label>
             <input
               type="text"
               value={name}
@@ -129,7 +129,7 @@ export default function SellerPage() {
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">Bei (TSh)</label>
+            <label className="block font-bold text-black mb-1">Bei (TSh)</label>
             <input
               type="number"
               value={price}
@@ -140,7 +140,7 @@ export default function SellerPage() {
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">Kategoria</label>
+            <label className="block font-bold text-black mb-1">Kategoria</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -156,7 +156,7 @@ export default function SellerPage() {
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">Maelezo</label>
+            <label className="block font-bold text-black mb-1">Maelezo</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -166,7 +166,7 @@ export default function SellerPage() {
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">Simu ya Muuzaji</label>
+            <label className="block font-bold text-black mb-1">Simu ya Muuzaji</label>
             <input
               type="text"
               value={sellerPhone}
@@ -177,7 +177,7 @@ export default function SellerPage() {
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">Eneo</label>
+            <label className="block font-bold text-black mb-1">Eneo</label>
             <input
               type="text"
               value={location}
@@ -187,7 +187,7 @@ export default function SellerPage() {
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">Mkoa</label>
+            <label className="block font-bold text-black mb-1">Mkoa</label>
             <input
               type="text"
               value={region}
@@ -197,7 +197,7 @@ export default function SellerPage() {
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">Picha (unaweza chagua nyingi)</label>
+            <label className="block font-bold text-black mb-1">Picha (unaweza chagua nyingi)</label>
             <input
               type="file"
               multiple
