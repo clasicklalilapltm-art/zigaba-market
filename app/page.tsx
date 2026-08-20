@@ -40,6 +40,12 @@ export default function Home() {
             {user ? (
               <>
                 <button
+                  onClick={() => router.push("/about")}
+                  className="hover:underline text-sm"
+                >
+                  About Us
+                </button>
+                <button
                   onClick={() => router.push("/seller")}
                   className="bg-white text-orange-500 px-3 py-1 rounded font-semibold text-sm"
                 >
@@ -57,6 +63,12 @@ export default function Home() {
               </>
             ) : (
               <>
+                <button
+                  onClick={() => router.push("/about")}
+                  className="hover:underline text-sm"
+                >
+                  About Us
+                </button>
                 <button
                   onClick={() => router.push("/login")}
                   className="hover:underline text-sm"
