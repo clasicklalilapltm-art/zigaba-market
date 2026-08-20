@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 export default function CheckoutPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const productId = searchParams.get("id");
+  const productId = searchParams.get("product");
 
   const [product, setProduct] = useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState("direct");
@@ -39,7 +39,9 @@ export default function CheckoutPage() {
     setLoading(true);
     setMessage("");
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     const { error } = await supabase.from("orders").insert({
       product_id: product.id,
@@ -60,9 +62,13 @@ export default function CheckoutPage() {
       setMessage("Kosa: " + error.message);
     } else {
       if (paymentMethod === "direct") {
-        setMessage("Oda imepokelewa! Wasiliana na muuzaji moja kwa moja.");
+        setMessage(
+          "Oda imepokelewa! Wasiliana na muuzaji moja kwa moja."
+        );
       } else {
-        setMessage("Oda imepokelewa! Lipa Zigaba Market. Muuzaji ataleta mzigo ofisini.");
+        setMessage(
+          "Oda imepokelewa! Lipa Zigaba Market. Muuzaji ataleta mzigo ofisini."
+        );
       }
     }
   };
@@ -112,7 +118,8 @@ export default function CheckoutPage() {
             <div>
               <p className="font-semibold">Lipa Muuzaji Moja kwa Moja</p>
               <p className="text-sm text-gray-600">
-                Utawasiliana na muuzaji na kulipa moja kwa moja (M-Pesa, Tigo, Airtel)
+                Utawasiliana na muuzaji na kulipa moja kwa moja (M-Pesa, Tigo,
+                Airtel)
               </p>
             </div>
           </label>
@@ -127,10 +134,13 @@ export default function CheckoutPage() {
               className="mt-1"
             />
             <div>
-              <p className="font-semibold text-orange-600">Lipa Zigaba Market (Salama)</p>
+              <p className="font-semibold text-orange-600">
+                Lipa Zigaba Market (Salama)
+              </p>
               <p className="text-sm text-gray-600">
-                Unalipa Zigaba. Muuzaji analeta mzigo ofisini. Baada ya kupokea na kuhakiki, 
-                Zigaba inampa muuzaji hela. Hii inakulinda usipeliwe.
+                Unalipa Zigaba. Muuzaji analeta mzigo ofisini. Baada ya kupokea
+                na kuhakiki, Zigaba inampa muuzaji hela. Hii inakulinda
+                usipeliwe.
               </p>
             </div>
           </label>
