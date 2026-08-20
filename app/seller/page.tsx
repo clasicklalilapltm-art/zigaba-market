@@ -44,7 +44,7 @@ export default function SellerPage() {
     if (files && files.length > 0) {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const fileName = `\( {Date.now()}- \){file.name}`;
+        const fileName = Date.now() + "-" + file.name;
 
         const { error: uploadError } = await supabase.storage
           .from("products")
