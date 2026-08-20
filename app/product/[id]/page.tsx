@@ -52,7 +52,7 @@ export default function ProductDetail() {
   }
 
   const images = product.image_url
-    ? product.image_url.split(",").filter((u: string) => u.trim() !== "")
+    ? product.image_url.split(",").map((u: string) => u.trim()).filter((u: string) => u !== "")
     : [];
 
   return (
@@ -79,14 +79,14 @@ export default function ProductDetail() {
                   <img
                     key={index}
                     src={img}
-                    alt={`${product.name} - ${index + 1}`}
+                    alt={`${product.name} ${index + 1}`}
                     className="h-80 w-full min-w-full object-cover snap-center"
                   />
                 ))}
               </div>
             ) : (
-              <div className="h-80 flex items-center justify-center">
-                <span className="text-6xl">📦</span>
+              <div className="h-80 flex items-center justify-center text-6xl">
+                📦
               </div>
             )}
           </div>
@@ -99,7 +99,6 @@ export default function ProductDetail() {
             </p>
             <p className="mt-4 text-gray-700">{product.description}</p>
 
-            {/* Seller Info */}
             <div className="mt-6 border-t pt-4">
               <h3 className="font-bold text-lg mb-2">Maelezo ya Muuzaji</h3>
               <p>
