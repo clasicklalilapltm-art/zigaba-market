@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = "https://tzrpmrwkglgjvsejgmab.supabase.co";
-const supabaseAnonKey = "sb_publishable_0Qtlmnmvh8gRWgosymiPxw_QJQds012";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from "@/lib/supabase";
 
 export default function SellerPage() {
   const router = useRouter();
@@ -46,7 +42,7 @@ export default function SellerPage() {
     if (files && files.length > 0) {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const fileName = Date.now() + "-" + i + "-" + file.name;
+        const fileName = `\( {Date.now()}- \){i}-${file.name}`;
 
         const { error: uploadError } = await supabase.storage
           .from("products")
@@ -56,7 +52,10 @@ export default function SellerPage() {
           const { data } = supabase.storage
             .from("products")
             .getPublicUrl(fileName);
-          imageUrls.push(data.publicUrl);
+
+          if (data?.publicUrl) {
+            imageUrls.push(data.publicUrl);
+          }
         }
       }
     }
@@ -91,14 +90,6 @@ export default function SellerPage() {
     setLoading(false);
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Inapakia...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-orange-500 text-white p-4">
@@ -115,7 +106,7 @@ export default function SellerPage() {
               onClick={() => router.push("/")}
               className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
             >
-              ← Nyumbani
+              Nyumbani
             </button>
           </div>
         </div>
@@ -152,10 +143,12 @@ export default function SellerPage() {
               onChange={(e) => setCategory(e.target.value)}
               className="w-full border rounded-lg px-4 py-2"
             >
-              <option>Electronics</option>
-              <option>Fashion</option>
-              <option>Home & Kitchen</option>
-              <option>Groceries</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Fashion">Fashion</option>
+              <option value="Home & Kitchen">Home & Kitchen</option>
+              <option value="Groceries">Groceries</option>
+              <option value="Furniture">Furniture</option>
+              <option value="Sports">Sports</option>
             </select>
           </div>
 
@@ -170,13 +163,13 @@ export default function SellerPage() {
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">Namba ya Simu</label>
+            <label className="block font-semibold mb-1">Simu ya Muuzaji</label>
             <input
               type="text"
               value={sellerPhone}
               onChange={(e) => setSellerPhone(e.target.value)}
               className="w-full border rounded-lg px-4 py-2"
-              placeholder="07XXXXXXXX"
+              required
             />
           </div>
 
