@@ -7,37 +7,27 @@ import { supabase } from "@/lib/supabase";
 export default function Home() {
   const router = useRouter();
   const [products, setProducts] = useState<any[]>([]);
-  const [user, setUser] = useState<any>(null);
-  const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("All");
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    async function fetchProducts() {
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+
       const { data } = await supabase.from("products").select("*").order("created_at", { ascending: false });
       if (data) setProducts(data);
     }
-
-    async function getUser() {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    }
-
-    fetchProducts();
-    getUser();
+    load();
   }, []);
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    setUser(null);
-    router.push("/");
-  }
-
   const filtered = products.filter((p) => {
-    const matchCategory = category === "All" || p.category === category;
-    const matchSearch =
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      (p.description && p.description.toLowerCase().includes(search.toLowerCase()));
-    return matchCategory && matchSearch;
+    const matchesCategory = category === "All" || p.category === category;
+    const matchesSearch =
+      p.name?.toLowerCase().includes(search.toLowerCase()) ||
+      p.description?.toLowerCase().includes(search.toLowerCase());
+    return matchesCategory && matchesSearch;
   });
 
   return (
@@ -46,16 +36,22 @@ export default function Home() {
       <header className="bg-orange-500 text-white p-4 shadow-md">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">Zigaba Market</h1>
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-3 items-center">
             {user ? (
               <>
                 <button
-                  onClick={() => router.push("/seller/dashboard")}
-                  className="hover:underline"
+                  onClick={() => router.push("/seller")}
+                  className="bg-white text-orange-500 px-3 py-1 rounded font-semibold text-sm"
                 >
-                  Dashboard
+                  Seller
                 </button>
-                <button onClick={handleLogout} className="hover:underline">
+                <button
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    setUser(null);
+                  }}
+                  className="hover:underline text-sm"
+                >
                   Logout
                 </button>
               </>
@@ -63,13 +59,13 @@ export default function Home() {
               <>
                 <button
                   onClick={() => router.push("/login")}
-                  className="hover:underline"
+                  className="hover:underline text-sm"
                 >
                   Login
                 </button>
                 <button
                   onClick={() => router.push("/register")}
-                  className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+                  className="bg-white text-orange-500 px-3 py-1 rounded font-semibold text-sm"
                 >
                   Register
                 </button>
@@ -87,20 +83,19 @@ export default function Home() {
             placeholder="Tafuta bidhaa..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-orange-500"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-orange-500 text-base"
           />
         </div>
       </div>
 
       {/* Categories */}
       <div className="max-w-6xl mx-auto p-4">
-        <h2 className="text-xl font-bold mb-4">Kategoria</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
           {["All", "Electronics", "Fashion", "Home & Kitchen", "Groceries", "Furniture", "Sports"].map((cat) => (
             <div
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`p-4 rounded-lg shadow text-center cursor-pointer hover:shadow-lg ${
+              className={`p-3 rounded-lg shadow text-center cursor-pointer font-semibold text-sm ${
                 category === cat ? "bg-orange-500 text-white" : "bg-white"
               }`}
             >
@@ -108,7 +103,7 @@ export default function Home() {
               {cat === "Electronics" && "📱 "}
               {cat === "Fashion" && "👕 "}
               {cat === "Home & Kitchen" && "🏠 "}
-              {cat === "Groceries" && "🧴 "}
+              {cat === "Groceries" && "🛒 "}
               {cat === "Furniture" && "🪑 "}
               {cat === "Sports" && "⚽ "}
               {cat}
@@ -133,14 +128,18 @@ export default function Home() {
               >
                 <div className="h-40 bg-gray-200 flex items-center justify-center">
                   {img ? (
-                    <img src={img} alt={product.name} className="h-full w-full object-cover" />
+                    <img
+                      src={img}
+                      alt={product.name}
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
                     <span className="text-4xl">📦</span>
                   )}
                 </div>
                 <div className="p-3">
-                  <h3 className="font-semibold truncate">{product.name}</h3>
-                  <p className="text-orange-500 font-bold mt-1">
+                  <h3 className="font-bold text-base truncate">{product.name}</h3>
+                  <p className="text-orange-500 font-bold text-lg mt-1">
                     TSh {Number(product.price).toLocaleString()}
                   </p>
                 </div>
