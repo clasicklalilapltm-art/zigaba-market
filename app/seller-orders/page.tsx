@@ -10,26 +10,38 @@ export default function SellerOrders() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-
-      const { data } = await supabase
-        .from("orders")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (data) setOrders(data);
-      setLoading(false);
-    }
-    load();
+    loadOrders();
   }, []);
+
+  async function loadOrders() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    const { data } = await supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (data) setOrders(data);
+    setLoading(false);
+  }
+
+  async function updateStatus(id: number, newStatus: string) {
+    const { error } = await supabase
+      .from("orders")
+      .update({ status: newStatus })
+      .eq("id", id);
+
+    if (!error) {
+      loadOrders();
+    }
+  }
 
   if (loading) {
     return (
@@ -88,12 +100,23 @@ export default function SellerOrders() {
                     className={`px-3 py-1 rounded-full text-sm font-semibold ${
                       order.status === "pending"
                         ? "bg-yellow-100 text-yellow-800"
+                        : order.status === "delivered"
+                        ? "bg-green-100 text-green-800"
                         : "bg-blue-100 text-blue-800"
                     }`}
                   >
                     {order.status}
                   </span>
                 </div>
+
+                {order.status === "pending" && (
+                  <button
+                    onClick={() => updateStatus(order.id, "delivered")}
+                    className="mt-3 w-full bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600"
+                  >
+                    Nimeleta ofisini
+                  </button>
+                )}
               </div>
             ))}
           </div>
