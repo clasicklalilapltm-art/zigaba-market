@@ -23,9 +23,25 @@ export default function SellerOrders() {
       return;
     }
 
+    // Pata bidhaa za seller huyu
+    const { data: myProducts } = await supabase
+      .from("products")
+      .select("id")
+      .eq("user_id", user.id);
+
+    const myProductIds = myProducts?.map((p) => p.id) || [];
+
+    if (myProductIds.length === 0) {
+      setOrders([]);
+      setLoading(false);
+      return;
+    }
+
+    // Pata oda za bidhaa zake tu
     const { data } = await supabase
       .from("orders")
       .select("*")
+      .in("product_id", myProductIds)
       .order("created_at", { ascending: false });
 
     if (data) setOrders(data);
@@ -39,13 +55,11 @@ export default function SellerOrders() {
       .eq("id", order.id);
 
     if (!error) {
-      // WhatsApp to Zigaba
       const productLink = `https://zigaba-market.vercel.app/product/${order.product_id}`;
       const msgZigaba = `Mzigo Umefika Ofisini\n\nBidhaa: ${order.product_name}\nBei/Jumla: TSh ${Number(order.price).toLocaleString()}\n\nMteja: ${order.customer_name}\nSimu ya Mteja: ${order.customer_phone}\nEneo: ${order.location}\n\nSimu ya Seller: ${order.seller_phone || "Haipo"}\n\nLink ya bidhaa: ${productLink}`;
 
       window.open(`https://wa.me/255705567854?text=${encodeURIComponent(msgZigaba)}`, "_blank");
 
-      // WhatsApp to Customer
       const customerPhone = (order.customer_phone || "").replace(/\s/g, "").replace("+", "");
       if (customerPhone) {
         const msgCustomer = `Habari \( {order.customer_name},\n\nMzigo wako ( \){order.product_name}) umefika ofisini ya Zigaba Market.\n\nTafadhali njoo kuchukua.\n\nLink ya bidhaa: ${productLink}\n\nAsante - Zigaba Market`;
@@ -72,10 +86,16 @@ export default function SellerOrders() {
         <div className="max-w-4xl mx-auto flex justify-between items-center flex-wrap gap-2">
           <h1 className="text-xl font-bold">Seller Dashboard</h1>
           <div className="flex gap-2">
-            <button onClick={() => router.push("/seller")} className="bg-white text-orange-500 px-4 py-1 rounded font-semibold">
+            <button
+              onClick={() => router.push("/seller")}
+              className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+            >
               Ongeza Bidhaa
             </button>
-            <button onClick={() => router.push("/")} className="bg-white text-orange-500 px-4 py-1 rounded font-semibold">
+            <button
+              onClick={() => router.push("/")}
+              className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
+            >
               ← Rudi
             </button>
           </div>
@@ -83,7 +103,7 @@ export default function SellerOrders() {
       </header>
 
       <div className="max-w-4xl mx-auto p-4">
-        <h2 className="text-xl font-bold mb-4">Oda ({orders.length})</h2>
+        <h2 className="text-xl font-bold mb-4">Oda zangu ({orders.length})</h2>
 
         {orders.length === 0 ? (
           <p className="text-gray-500">Hakuna oda bado.</p>
