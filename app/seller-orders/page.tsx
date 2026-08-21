@@ -32,13 +32,28 @@ export default function SellerOrders() {
     setLoading(false);
   }
 
-  async function updateStatus(id: number, newStatus: string) {
+  async function updateStatus(order: any) {
     const { error } = await supabase
       .from("orders")
-      .update({ status: newStatus })
-      .eq("id", id);
+      .update({ status: "delivered" })
+      .eq("id", order.id);
 
     if (!error) {
+      // WhatsApp to Zigaba
+      const productLink = `https://zigaba-market.vercel.app/product/${order.product_id}`;
+      const msgZigaba = `Mzigo Umefika Ofisini\n\nBidhaa: ${order.product_name}\nBei/Jumla: TSh ${Number(order.price).toLocaleString()}\n\nMteja: ${order.customer_name}\nSimu ya Mteja: ${order.customer_phone}\nEneo: ${order.location}\n\nSimu ya Seller: ${order.seller_phone || "Haipo"}\n\nLink ya bidhaa: ${productLink}`;
+
+      window.open(`https://wa.me/255705567854?text=${encodeURIComponent(msgZigaba)}`, "_blank");
+
+      // WhatsApp to Customer
+      const customerPhone = (order.customer_phone || "").replace(/\s/g, "").replace("+", "");
+      if (customerPhone) {
+        const msgCustomer = `Habari \( {order.customer_name},\n\nMzigo wako ( \){order.product_name}) umefika ofisini ya Zigaba Market.\n\nTafadhali njoo kuchukua.\n\nLink ya bidhaa: ${productLink}\n\nAsante - Zigaba Market`;
+        setTimeout(() => {
+          window.open(`https://wa.me/\( {customerPhone}?text= \){encodeURIComponent(msgCustomer)}`, "_blank");
+        }, 1000);
+      }
+
       loadOrders();
     }
   }
@@ -57,16 +72,10 @@ export default function SellerOrders() {
         <div className="max-w-4xl mx-auto flex justify-between items-center flex-wrap gap-2">
           <h1 className="text-xl font-bold">Seller Dashboard</h1>
           <div className="flex gap-2">
-            <button
-              onClick={() => router.push("/seller")}
-              className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
-            >
+            <button onClick={() => router.push("/seller")} className="bg-white text-orange-500 px-4 py-1 rounded font-semibold">
               Ongeza Bidhaa
             </button>
-            <button
-              onClick={() => router.push("/")}
-              className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
-            >
+            <button onClick={() => router.push("/")} className="bg-white text-orange-500 px-4 py-1 rounded font-semibold">
               ← Rudi
             </button>
           </div>
@@ -119,7 +128,7 @@ export default function SellerOrders() {
 
                 {(order.status === "pending" || order.status === "direct") && (
                   <button
-                    onClick={() => updateStatus(order.id, "delivered")}
+                    onClick={() => updateStatus(order)}
                     className="mt-3 w-full bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600"
                   >
                     Nimeleta ofisini
