@@ -163,7 +163,7 @@ function CheckoutContent() {
       location: location,
       payment_method: paymentMethod,
       status: paymentMethod === "zigaba" ? "pending" : "direct",
-      seller_phone: product.phone || "",
+      seller_phone: product.phone || product.seller_phone || "",
       buyer_id: user?.id || null,
     });
 
@@ -175,6 +175,15 @@ function CheckoutContent() {
       setMessage(
         paymentMethod === "direct" ? text.successDirect : text.successZigaba
       );
+
+      // WhatsApp notification to Zigaba Market
+      if (paymentMethod === "zigaba") {
+        const sellerPhone = product.phone || product.seller_phone || "Haipo";
+        const msg = `Oda Mpya - Zigaba Market\n\nBidhaa: ${product.name}\nBei: TSh ${Number(product.price).toLocaleString()}\n\nMteja: ${customerName}\nSimu ya Mteja: ${customerPhone}\nEneo: ${location}\n\nSimu ya Seller: ${sellerPhone}\n\nMalipo: Lipa Zigaba Market`;
+
+        const waUrl = `https://wa.me/255705567854?text=${encodeURIComponent(msg)}`;
+        window.open(waUrl, "_blank");
+      }
     }
   };
 
