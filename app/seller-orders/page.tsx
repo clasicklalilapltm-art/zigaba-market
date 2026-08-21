@@ -23,7 +23,6 @@ export default function SellerOrders() {
       return;
     }
 
-    // Pata bidhaa za seller huyu
     const { data: myProducts } = await supabase
       .from("products")
       .select("id")
@@ -37,7 +36,6 @@ export default function SellerOrders() {
       return;
     }
 
-    // Pata oda za bidhaa zake tu
     const { data } = await supabase
       .from("orders")
       .select("*")
@@ -56,13 +54,13 @@ export default function SellerOrders() {
 
     if (!error) {
       const productLink = `https://zigaba-market.vercel.app/product/${order.product_id}`;
-      const msgZigaba = `Mzigo Umefika Ofisini\n\nBidhaa: ${order.product_name}\nBei/Jumla: TSh ${Number(order.price).toLocaleString()}\n\nMteja: ${order.customer_name}\nSimu ya Mteja: ${order.customer_phone}\nEneo: ${order.location}\n\nSimu ya Seller: ${order.seller_phone || "Haipo"}\n\nLink ya bidhaa: ${productLink}`;
+      const msgZigaba = `Mzigo Umefika Ofisini\n\nBidhaa: ${order.product_name}\nBei/Jumla: TSh ${Number(order.price).toLocaleString()}\n\nMteja: ${order.customer_name}\nSimu ya Mteja: ${order.customer_phone}\nEneo: ${order.location}\n\nSimu ya Seller: ${order.seller_phone || "Haipo"}\n\nLink: ${productLink}`;
 
       window.open(`https://wa.me/255705567854?text=${encodeURIComponent(msgZigaba)}`, "_blank");
 
       const customerPhone = (order.customer_phone || "").replace(/\s/g, "").replace("+", "");
       if (customerPhone) {
-        const msgCustomer = `Habari \( {order.customer_name},\n\nMzigo wako ( \){order.product_name}) umefika ofisini ya Zigaba Market.\n\nTafadhali njoo kuchukua.\n\nLink ya bidhaa: ${productLink}\n\nAsante - Zigaba Market`;
+        const msgCustomer = `Habari \( {order.customer_name},\n\nMzigo wako ( \){order.product_name}) umefika ofisini ya Zigaba Market.\n\nTafadhali njoo kuchukua.\n\nLink: ${productLink}\n\nAsante - Zigaba Market`;
         setTimeout(() => {
           window.open(`https://wa.me/\( {customerPhone}?text= \){encodeURIComponent(msgCustomer)}`, "_blank");
         }, 1000);
@@ -86,16 +84,10 @@ export default function SellerOrders() {
         <div className="max-w-4xl mx-auto flex justify-between items-center flex-wrap gap-2">
           <h1 className="text-xl font-bold">Seller Dashboard</h1>
           <div className="flex gap-2">
-            <button
-              onClick={() => router.push("/seller")}
-              className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
-            >
+            <button onClick={() => router.push("/seller")} className="bg-white text-orange-500 px-4 py-1 rounded font-semibold">
               Ongeza Bidhaa
             </button>
-            <button
-              onClick={() => router.push("/")}
-              className="bg-white text-orange-500 px-4 py-1 rounded font-semibold"
-            >
+            <button onClick={() => router.push("/")} className="bg-white text-orange-500 px-4 py-1 rounded font-semibold">
               ← Rudi
             </button>
           </div>
@@ -146,7 +138,8 @@ export default function SellerOrders() {
                   </span>
                 </div>
 
-                {(order.status === "pending" || order.status === "direct") && (
+                {/* Button inaonekana TU kwa oda za Zigaba (pending) */}
+                {order.status === "pending" && (
                   <button
                     onClick={() => updateStatus(order)}
                     className="mt-3 w-full bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600"
