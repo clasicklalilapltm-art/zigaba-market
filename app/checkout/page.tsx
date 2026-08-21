@@ -90,11 +90,11 @@ function CheckoutContent() {
   const price = product ? Number(product.price) : 0;
 
   function getCommission(p: number) {
-    if (p >= 1000000) return Math.round(p * 0.10);
-    if (p >= 100000) return Math.round(p * 0.05);
-    if (p >= 60000) return Math.round(p * 0.04);
-    if (p >= 30000) return Math.round(p * 0.03);
-    if (p >= 10000) return Math.round(p * 0.02);
+    if (p >= 1000000) return Math.round(p * 0.02); // 2%
+    if (p >= 100000) return Math.round(p * 0.05);  // 5%
+    if (p >= 60000) return Math.round(p * 0.04);   // 4%
+    if (p >= 30000) return Math.round(p * 0.03);   // 3%
+    if (p >= 10000) return Math.round(p * 0.02);   // 2%
     return Math.round(p * 0.02);
   }
 
