@@ -9,6 +9,7 @@ export default function ProductDetail() {
   const router = useRouter();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -41,7 +42,7 @@ export default function ProductDetail() {
   }
 
   const images = product.image_url
-    ? product.image_url.split(",").map((url: string) => url.trim())
+    ? product.image_url.split(",").map((url: string) => url.trim()).filter(Boolean)
     : [];
 
   return (
@@ -60,7 +61,7 @@ export default function ProductDetail() {
 
       <div className="max-w-4xl mx-auto p-4">
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          {/* Images */}
+          {/* Images Gallery */}
           <div className="flex gap-2 overflow-x-auto p-4">
             {images.length > 0 ? (
               images.map((img: string, index: number) => (
@@ -68,7 +69,8 @@ export default function ProductDetail() {
                   key={index}
                   src={img}
                   alt={product.name}
-                  className="h-48 w-48 object-cover rounded-lg flex-shrink-0"
+                  onClick={() => setSelectedImage(img)}
+                  className="h-48 w-48 object-cover rounded-lg flex-shrink-0 cursor-pointer hover:opacity-90"
                 />
               ))
             ) : (
@@ -114,7 +116,11 @@ export default function ProductDetail() {
               <a
                 href={
                   "https://wa.me/" +
-                  (product.phone || product.seller_phone || "").replace(/\s/g, "")
+                  (() => {
+                    let phone = (product.phone || product.seller_phone || "").replace(/\s/g, "").replace("+", "");
+                    if (phone.startsWith("0")) phone = "255" + phone.substring(1);
+                    return phone;
+                  })()
                 }
                 target="_blank"
                 className="flex-1 bg-green-500 text-white py-3 rounded-lg text-center font-semibold"
@@ -131,6 +137,27 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* Zoom Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white text-3xl font-bold"
+            onClick={() => setSelectedImage(null)}
+          >
+            ✕
+          </button>
+          <img
+            src={selectedImage}
+            alt="Zoom"
+            className="max-h-full max-w-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
