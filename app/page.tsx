@@ -47,68 +47,9 @@ export default function Home() {
       furniture: "Furniture",
       sports: "Sports",
     },
-    fr: {
-      title: "Zigaba Market",
-      search: "Rechercher des produits...",
-      products: "Produits",
-      login: "Connexion",
-      register: "S'inscrire",
-      seller: "Vendeur",
-      logout: "Déconnexion",
-      about: "À propos",
-      all: "Tous",
-      electronics: "Électronique",
-      fashion: "Mode",
-      home: "Maison & Cuisine",
-      groceries: "Épicerie",
-      furniture: "Meubles",
-      sports: "Sports",
-    },
-    zh: {
-      title: "Zigaba Market",
-      search: "搜索产品...",
-      products: "产品",
-      login: "登录",
-      register: "注册",
-      seller: "卖家",
-      logout: "退出",
-      about: "关于我们",
-      all: "全部",
-      electronics: "电子产品",
-      fashion: "时尚",
-      home: "家居厨房",
-      groceries: "食品杂货",
-      furniture: "家具",
-      sports: "体育",
-    },
-    ar: {
-      title: "Zigaba Market",
-      search: "ابحث عن المنتجات...",
-      products: "المنتجات",
-      login: "تسجيل الدخول",
-      register: "إنشاء حساب",
-      seller: "البائع",
-      logout: "تسجيل الخروج",
-      about: "معلومات عنا",
-      all: "الكل",
-      electronics: "إلكترونيات",
-      fashion: "أزياء",
-      home: "المنزل والمطبخ",
-      groceries: "البقالة",
-      furniture: "أثاث",
-      sports: "رياضة",
-    },
   };
 
   const text = t[lang] || t.sw;
-
-  const languages = [
-    { code: "sw", label: "SW" },
-    { code: "en", label: "EN" },
-    { code: "fr", label: "FR" },
-    { code: "zh", label: "中文" },
-    { code: "ar", label: "عربي" },
-  ];
 
   useEffect(() => {
     const saved = localStorage.getItem("lang");
@@ -143,31 +84,27 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-100" dir={lang === "ar" ? "rtl" : "ltr"}>
-      <header className="bg-orange-500 text-white p-4 shadow-md">
+    <div className="min-h-screen bg-gray-100">
+      {/* Sticky Header */}
+      <header className="bg-orange-500 text-white p-4 shadow-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex justify-between items-center flex-wrap gap-2">
           <h1 className="text-2xl font-bold">{text.title}</h1>
           <div className="flex gap-2 items-center flex-wrap">
-            {languages.map((l) => (
+            {["sw", "en"].map((code) => (
               <button
-                key={l.code}
-                onClick={() => changeLang(l.code)}
+                key={code}
+                onClick={() => changeLang(code)}
                 className={`px-2 py-1 rounded text-sm font-bold ${
-                  lang === l.code
-                    ? "bg-white text-orange-500"
-                    : "bg-orange-600 text-white"
+                  lang === code ? "bg-white text-orange-500" : "bg-orange-600 text-white"
                 }`}
               >
-                {l.label}
+                {code.toUpperCase()}
               </button>
             ))}
 
             {user ? (
               <>
-                <button
-                  onClick={() => router.push("/about")}
-                  className="hover:underline text-sm"
-                >
+                <button onClick={() => router.push("/about")} className="hover:underline text-sm">
                   {text.about}
                 </button>
                 <button
@@ -188,16 +125,10 @@ export default function Home() {
               </>
             ) : (
               <>
-                <button
-                  onClick={() => router.push("/about")}
-                  className="hover:underline text-sm"
-                >
+                <button onClick={() => router.push("/about")} className="hover:underline text-sm">
                   {text.about}
                 </button>
-                <button
-                  onClick={() => router.push("/login")}
-                  className="hover:underline text-sm"
-                >
+                <button onClick={() => router.push("/login")} className="hover:underline text-sm">
                   {text.login}
                 </button>
                 <button
@@ -212,44 +143,44 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="bg-white p-4 shadow">
-        <div className="max-w-6xl mx-auto">
+      {/* Sticky Search + Categories */}
+      <div className="bg-white shadow sticky top-[72px] z-40">
+        <div className="max-w-6xl mx-auto p-4">
           <input
             type="text"
             placeholder={text.search}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-orange-500 text-base"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-orange-500 text-base mb-3"
           />
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+            {[
+              { key: "All", label: text.all, emoji: "🛒" },
+              { key: "Electronics", label: text.electronics, emoji: "📱" },
+              { key: "Fashion", label: text.fashion, emoji: "👕" },
+              { key: "Home & Kitchen", label: text.home, emoji: "🏠" },
+              { key: "Groceries", label: text.groceries, emoji: "🛒" },
+              { key: "Furniture", label: text.furniture, emoji: "🪑" },
+              { key: "Sports", label: text.sports, emoji: "⚽" },
+            ].map((cat) => (
+              <div
+                key={cat.key}
+                onClick={() => setCategory(cat.key)}
+                className={`p-2 rounded-lg shadow text-center cursor-pointer font-bold text-xs ${
+                  category === cat.key
+                    ? "bg-orange-500 text-white"
+                    : "bg-gray-50 text-black border border-gray-200"
+                }`}
+              >
+                {cat.emoji} {cat.label}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto p-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-          {[
-            { key: "All", label: text.all, emoji: "🛒" },
-            { key: "Electronics", label: text.electronics, emoji: "📱" },
-            { key: "Fashion", label: text.fashion, emoji: "👕" },
-            { key: "Home & Kitchen", label: text.home, emoji: "🏠" },
-            { key: "Groceries", label: text.groceries, emoji: "🛒" },
-            { key: "Furniture", label: text.furniture, emoji: "🪑" },
-            { key: "Sports", label: text.sports, emoji: "⚽" },
-          ].map((cat) => (
-            <div
-              key={cat.key}
-              onClick={() => setCategory(cat.key)}
-              className={`p-3 rounded-lg shadow text-center cursor-pointer font-bold text-sm ${
-                category === cat.key
-                  ? "bg-orange-500 text-white"
-                  : "bg-white text-black border border-gray-200"
-              }`}
-            >
-              {cat.emoji} {cat.label}
-            </div>
-          ))}
-        </div>
-      </div>
-
+      {/* Products */}
       <div className="max-w-6xl mx-auto p-4">
         <h2 className="text-xl font-bold mb-4 text-black">
           {text.products} ({filtered.length})
